@@ -1,0 +1,3336 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "kernelspec": {
+      "display_name": "Python 3",
+      "language": "python",
+      "name": "python3"
+    },
+    "language_info": {
+      "codemirror_mode": {
+        "name": "ipython",
+        "version": 3
+      },
+      "file_extension": ".py",
+      "mimetype": "text/x-python",
+      "name": "python",
+      "nbconvert_exporter": "python",
+      "pygments_lexer": "ipython3",
+      "version": "3.7.5"
+    },
+    "colab": {
+      "name": "AWSlinearLearnerRegression.ipynb",
+      "provenance": []
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "dPA0tLsLxV8u",
+        "colab_type": "code",
+        "outputId": "92ecf02c-c9e4-49a5-a50f-d79259f58f91",
+        "colab": {}
+      },
+      "source": [
+        "! pip3 install pandas \n"
+      ],
+      "execution_count": 0,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "Collecting pandas\n",
+            "\u001b[?25l  Downloading https://files.pythonhosted.org/packages/e9/97/63740ed74af57e00f07fab6a9c6baa4a592d28d254c0f9877901ccb12d3d/pandas-1.0.3-cp38-cp38-macosx_10_9_x86_64.whl (10.2MB)\n",
+            "\u001b[K     |████████████████████████████████| 10.2MB 3.7MB/s eta 0:00:01\n",
+            "\u001b[?25hRequirement already satisfied: python-dateutil>=2.6.1 in /usr/local/Cellar/ipython/7.8.0/libexec/vendor/lib/python3.7/site-packages (from pandas) (2.8.0)\n",
+            "Requirement already satisfied: numpy>=1.13.3 in /Users/medamin/Library/Python/3.8/lib/python/site-packages (from pandas) (1.18.2)\n",
+            "Collecting pytz>=2017.2 (from pandas)\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "wKiL_nWoxV8_",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "import pandas as pd\n",
+        "import numpy as np\n",
+        "from sklearn.preprocessing import StandardScaler, OneHotEncoder, LabelEncoder"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "_diZJHn5y2RW",
+        "colab_type": "code",
+        "outputId": "9ab7d3c2-7cb5-4627-fcc9-f828e8fd0407",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 122
+        }
+      },
+      "source": [
+        "from google.colab import drive\n",
+        "drive.mount(\"/content/drive\", force_remount=True)\n"
+      ],
+      "execution_count": 0,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "Go to this URL in a browser: https://accounts.google.com/o/oauth2/auth?client_id=947318989803-6bn6qk8qdgf4n4g3pfee6491hc0brc4i.apps.googleusercontent.com&redirect_uri=urn%3aietf%3awg%3aoauth%3a2.0%3aoob&response_type=code&scope=email%20https%3a%2f%2fwww.googleapis.com%2fauth%2fdocs.test%20https%3a%2f%2fwww.googleapis.com%2fauth%2fdrive%20https%3a%2f%2fwww.googleapis.com%2fauth%2fdrive.photos.readonly%20https%3a%2f%2fwww.googleapis.com%2fauth%2fpeopleapi.readonly\n",
+            "\n",
+            "Enter your authorization code:\n",
+            "··········\n",
+            "Mounted at /content/drive\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "HHA8ZCwNxV9M",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "df=pd.read_csv(\"/content/drive/My Drive/Colab Notebooks/data/GD_Part2_clean.csv\")"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "5nu4SyVszMBQ",
+        "colab_type": "code",
+        "outputId": "9ba1e142-c5aa-4d03-9778-7259d61734c3",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 411
+        }
+      },
+      "source": [
+        "df.head()\n",
+        "# np.set_printoptions(precision=3)"
+      ],
+      "execution_count": 0,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/html": [
+              "<div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>Unnamed: 0</th>\n",
+              "      <th>CPR_NO</th>\n",
+              "      <th>SCH_NM</th>\n",
+              "      <th>PROV_NM</th>\n",
+              "      <th>SUBM</th>\n",
+              "      <th>Teacher_Gender</th>\n",
+              "      <th>ACHIEVEMENTS1</th>\n",
+              "      <th>ACHIEVEMENTS2</th>\n",
+              "      <th>MIDTERM1</th>\n",
+              "      <th>MIDTERM2</th>\n",
+              "      <th>FINAL1</th>\n",
+              "      <th>FINAL2</th>\n",
+              "      <th>TOTAL1</th>\n",
+              "      <th>TOTAL2</th>\n",
+              "      <th>D_MARK</th>\n",
+              "      <th>NAT_MARK</th>\n",
+              "      <th>GPA</th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>0</th>\n",
+              "      <td>0</td>\n",
+              "      <td>70913390</td>\n",
+              "      <td>المعهد الديني الجعفري</td>\n",
+              "      <td>Cap</td>\n",
+              "      <td>Science</td>\n",
+              "      <td>M</td>\n",
+              "      <td>28.0</td>\n",
+              "      <td>30.0</td>\n",
+              "      <td>17.0</td>\n",
+              "      <td>17.0</td>\n",
+              "      <td>45.0</td>\n",
+              "      <td>33.0</td>\n",
+              "      <td>90.0</td>\n",
+              "      <td>80</td>\n",
+              "      <td>85</td>\n",
+              "      <td>53.7</td>\n",
+              "      <td>92.9</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>1</th>\n",
+              "      <td>1</td>\n",
+              "      <td>71105956</td>\n",
+              "      <td>المعهد الديني الجعفري</td>\n",
+              "      <td>Cap</td>\n",
+              "      <td>Science</td>\n",
+              "      <td>M</td>\n",
+              "      <td>27.0</td>\n",
+              "      <td>29.0</td>\n",
+              "      <td>14.0</td>\n",
+              "      <td>16.0</td>\n",
+              "      <td>41.5</td>\n",
+              "      <td>37.0</td>\n",
+              "      <td>83.0</td>\n",
+              "      <td>82</td>\n",
+              "      <td>83</td>\n",
+              "      <td>49.7</td>\n",
+              "      <td>89.5</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>2</th>\n",
+              "      <td>2</td>\n",
+              "      <td>70712190</td>\n",
+              "      <td>المعهد الديني الجعفري</td>\n",
+              "      <td>Cap</td>\n",
+              "      <td>Science</td>\n",
+              "      <td>M</td>\n",
+              "      <td>27.0</td>\n",
+              "      <td>27.0</td>\n",
+              "      <td>13.0</td>\n",
+              "      <td>15.0</td>\n",
+              "      <td>27.5</td>\n",
+              "      <td>37.0</td>\n",
+              "      <td>68.0</td>\n",
+              "      <td>79</td>\n",
+              "      <td>74</td>\n",
+              "      <td>52.1</td>\n",
+              "      <td>86.2</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>3</th>\n",
+              "      <td>3</td>\n",
+              "      <td>70207496</td>\n",
+              "      <td>المعهد الديني الجعفري</td>\n",
+              "      <td>Cap</td>\n",
+              "      <td>Science</td>\n",
+              "      <td>M</td>\n",
+              "      <td>26.0</td>\n",
+              "      <td>24.5</td>\n",
+              "      <td>15.0</td>\n",
+              "      <td>12.0</td>\n",
+              "      <td>44.0</td>\n",
+              "      <td>32.5</td>\n",
+              "      <td>85.0</td>\n",
+              "      <td>69</td>\n",
+              "      <td>77</td>\n",
+              "      <td>52.9</td>\n",
+              "      <td>89.9</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>4</th>\n",
+              "      <td>4</td>\n",
+              "      <td>70507953</td>\n",
+              "      <td>المعهد الديني الجعفري</td>\n",
+              "      <td>Cap</td>\n",
+              "      <td>Science</td>\n",
+              "      <td>M</td>\n",
+              "      <td>25.0</td>\n",
+              "      <td>28.0</td>\n",
+              "      <td>14.0</td>\n",
+              "      <td>15.0</td>\n",
+              "      <td>31.5</td>\n",
+              "      <td>37.0</td>\n",
+              "      <td>71.0</td>\n",
+              "      <td>80</td>\n",
+              "      <td>76</td>\n",
+              "      <td>52.1</td>\n",
+              "      <td>86.2</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "</div>"
+            ],
+            "text/plain": [
+              "   Unnamed: 0    CPR_NO                 SCH_NM  ... D_MARK NAT_MARK   GPA\n",
+              "0           0  70913390  المعهد الديني الجعفري  ...     85     53.7  92.9\n",
+              "1           1  71105956  المعهد الديني الجعفري  ...     83     49.7  89.5\n",
+              "2           2  70712190  المعهد الديني الجعفري  ...     74     52.1  86.2\n",
+              "3           3  70207496  المعهد الديني الجعفري  ...     77     52.9  89.9\n",
+              "4           4  70507953  المعهد الديني الجعفري  ...     76     52.1  86.2\n",
+              "\n",
+              "[5 rows x 17 columns]"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 142
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "cyiBgABPxV9T",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "# I will keep them both here\n",
+        "# df=df[df.SUBM==\"Math\"] "
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "UFTwUbUOxV9a",
+        "colab_type": "code",
+        "outputId": "cb2241f8-ab6d-4584-f957-d7b105859bee",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 85
+        }
+      },
+      "source": [
+        "df.keys()"
+      ],
+      "execution_count": 0,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "Index(['Unnamed: 0', 'CPR_NO', 'SCH_NM', 'PROV_NM', 'SUBM', 'Teacher_Gender',\n",
+              "       'ACHIEVEMENTS1', 'ACHIEVEMENTS2', 'MIDTERM1', 'MIDTERM2', 'FINAL1',\n",
+              "       'FINAL2', 'TOTAL1', 'TOTAL2', 'D_MARK', 'NAT_MARK', 'GPA'],\n",
+              "      dtype='object')"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 141
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "_O2YwLtRxV9h",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "df.drop(['TOTAL1','ACHIEVEMENTS2','MIDTERM2', 'FINAL2', 'TOTAL2', 'D_MARK', 'Unnamed: 0'], axis=1, inplace=True)"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "lcNIltb6xV9m",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "df.set_index(\"CPR_NO\", inplace=True)"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "2-EPMIKLxV9r",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "df=df[[ 'NAT_MARK', 'GPA','SCH_NM', 'PROV_NM', 'SUBM', 'Teacher_Gender', 'ACHIEVEMENTS1',\n",
+        "       'MIDTERM1', 'FINAL1']]"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "efTV_TKExV9w",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "label_encoder = LabelEncoder()\n",
+        "\n",
+        "for i in ['SCH_NM',  \"SUBM\"]:\n",
+        "\n",
+        "    df[i] = label_encoder.fit_transform(df[i])"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "ek1Om8QGxV90",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "df.Teacher_Gender=((df.Teacher_Gender==\"M\")+0)"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "ZFRzTR7xxV93",
+        "colab_type": "code",
+        "outputId": "cd643f31-9b77-407e-fca9-d34d0905507d",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 34
+        }
+      },
+      "source": [
+        "df.SUBM.unique()"
+      ],
+      "execution_count": 0,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "array([1, 0])"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 148
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "Npji9EHwxV97",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "df= pd.get_dummies(df, columns=[\"SCH_NM\", \"PROV_NM\"])"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "MPPusNZrxV-A",
+        "colab_type": "code",
+        "outputId": "e8d029a7-c401-49c2-d31a-e6ab526bd45b",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 204
+        }
+      },
+      "source": [
+        "# Already Done Above \n",
+        "#df.insert(0, \"Nat_Class\" , df.pop(\"NAT_class\") )\n",
+        "df.head()"
+      ],
+      "execution_count": 0,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/html": [
+              "<div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>NAT_MARK</th>\n",
+              "      <th>GPA</th>\n",
+              "      <th>SCH_NM</th>\n",
+              "      <th>PROV_NM</th>\n",
+              "      <th>SUBM</th>\n",
+              "      <th>Teacher_Gender</th>\n",
+              "      <th>ACHIEVEMENTS1</th>\n",
+              "      <th>MIDTERM1</th>\n",
+              "      <th>FINAL1</th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>0</th>\n",
+              "      <td>53.7</td>\n",
+              "      <td>92.9</td>\n",
+              "      <td>0</td>\n",
+              "      <td>Cap</td>\n",
+              "      <td>1</td>\n",
+              "      <td>1</td>\n",
+              "      <td>28.0</td>\n",
+              "      <td>17.0</td>\n",
+              "      <td>45.0</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>1</th>\n",
+              "      <td>49.7</td>\n",
+              "      <td>89.5</td>\n",
+              "      <td>0</td>\n",
+              "      <td>Cap</td>\n",
+              "      <td>1</td>\n",
+              "      <td>1</td>\n",
+              "      <td>27.0</td>\n",
+              "      <td>14.0</td>\n",
+              "      <td>41.5</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>2</th>\n",
+              "      <td>52.1</td>\n",
+              "      <td>86.2</td>\n",
+              "      <td>0</td>\n",
+              "      <td>Cap</td>\n",
+              "      <td>1</td>\n",
+              "      <td>1</td>\n",
+              "      <td>27.0</td>\n",
+              "      <td>13.0</td>\n",
+              "      <td>27.5</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>3</th>\n",
+              "      <td>52.9</td>\n",
+              "      <td>89.9</td>\n",
+              "      <td>0</td>\n",
+              "      <td>Cap</td>\n",
+              "      <td>1</td>\n",
+              "      <td>1</td>\n",
+              "      <td>26.0</td>\n",
+              "      <td>15.0</td>\n",
+              "      <td>44.0</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>4</th>\n",
+              "      <td>52.1</td>\n",
+              "      <td>86.2</td>\n",
+              "      <td>0</td>\n",
+              "      <td>Cap</td>\n",
+              "      <td>1</td>\n",
+              "      <td>1</td>\n",
+              "      <td>25.0</td>\n",
+              "      <td>14.0</td>\n",
+              "      <td>31.5</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "</div>"
+            ],
+            "text/plain": [
+              "   NAT_MARK   GPA  SCH_NM  ... ACHIEVEMENTS1  MIDTERM1  FINAL1\n",
+              "0      53.7  92.9       0  ...          28.0      17.0    45.0\n",
+              "1      49.7  89.5       0  ...          27.0      14.0    41.5\n",
+              "2      52.1  86.2       0  ...          27.0      13.0    27.5\n",
+              "3      52.9  89.9       0  ...          26.0      15.0    44.0\n",
+              "4      52.1  86.2       0  ...          25.0      14.0    31.5\n",
+              "\n",
+              "[5 rows x 9 columns]"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 153
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "ILEJAQYmxV-F",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "df.to_csv(\"/content/drive/My Drive/Colab Notebooks/data/aws_data_raw.csv\", index=False)"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "AVsWyo2xxV-J",
+        "colab_type": "code",
+        "outputId": "d8f58f0d-fc91-45a1-c70d-c6d35273abec",
+        "colab": {}
+      },
+      "source": [
+        "! aws s3 ls s3://sec-students2016  --recursive"
+      ],
+      "execution_count": 0,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "2020-02-17 10:50:29          0 cleaned-data/\r\n",
+            "2020-02-23 12:16:37     134842 cleaned-data/bstdata.csv\r\n",
+            "2020-02-17 10:51:48      78154 cleaned-data/df.csv\r\n",
+            "2020-02-19 14:03:33     860430 cleaned-data/df_merged.csv\r\n",
+            "2020-03-10 13:48:40    1063026 cleaned-data/encoded2016-10Mars.csv\r\n",
+            "2020-02-18 10:05:40     112487 cleaned-data/gpa_df.csv\r\n",
+            "2020-03-11 13:49:35      31976 cleaned-data/rawtest/test.csv\r\n",
+            "2020-03-11 13:49:35     224762 cleaned-data/rawtrain/train.csv\r\n",
+            "2020-03-11 13:49:35      64951 cleaned-data/rawvalidation/validation.csv\r\n",
+            "2020-02-18 09:06:55       4018 sagemaker/DEMO-linear-mnist/output/linear-learner-2020-02-18-06-02-01-753/output/model.tar.gz\r\n",
+            "2020-02-18 09:01:45  159200000 sagemaker/DEMO-linear-mnist/train/recordio-pb-data\r\n",
+            "2020-04-15 09:17:33    5901140 sam1610\r\n",
+            "2020-02-18 14:05:08          0 sam1610/\r\n",
+            "2020-04-14 14:28:35    2742565 sam1610/aws_data.csv\r\n",
+            "2020-02-18 17:29:22      17752 sam1610/model/xgboost-Students-v1-2020-02-18-14-25-40-858/output/model.tar.gz\r\n",
+            "2020-03-09 21:19:13      17753 sam1610/model/xgboost-Students-v1-2020-03-09-18-16-13-213/output/model.tar.gz\r\n",
+            "2020-04-13 13:02:30       3625 sam1610/output/linear-learner-2020-04-13-09-58-30-398/output/model.tar.gz\r\n",
+            "2020-03-09 21:13:56      31346 sam1610/train.csv\r\n",
+            "2020-04-13 11:45:52    4026960 sam1610/train/linear_train.data\r\n",
+            "2020-03-09 21:13:56       3929 sam1610/validation.csv\r\n",
+            "2020-04-13 11:45:53    1150492 sam1610/validation/linear_val.data\r\n",
+            "2020-02-17 13:09:06          0 train/\r\n",
+            "2020-02-18 11:05:15      31346 train/train.csv\r\n",
+            "2020-02-17 13:04:03          0 validation/\r\n",
+            "2020-02-18 11:05:15       3929 validation/validation.csv\r\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "nT9PCurhxV-M",
+        "colab_type": "code",
+        "outputId": "4f6217bb-7b70-4945-ef64-df1819e9b24a",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 34
+        }
+      },
+      "source": [
+        "! aws  s3  cp \"data/aws_data_raw.csv\"  s3://sec-students2016/sam1610"
+      ],
+      "execution_count": 0,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "/bin/bash: aws: command not found\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "9Te2cJ_hxV-P",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "# matrix=pd.read_csv(\"data/aws_data.csv\", dtype='float32').values"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "P1nSWBa9TCty",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "df=pd.read_csv(\"/content/drive/My Drive/Colab Notebooks/data/aws_data_raw.csv\")"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "dB673sgYfv_A",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "# df.set_index(\"CPR_NO\", inplace=True)"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "bmklWqilg0Ul",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "df.isna().sum()\n",
+        "df.dropna(inplace=True)"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "sKVe2c-MaFvg",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "imputer=SimpleImputer(strategy=\"median\")\n",
+        "df=imputer.fit_transform(df)"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "g9fVbfhYxV-U",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "X=df.iloc[:, 2:]\n",
+        "y=df.iloc[:,0]"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "58Sr2NQRh-Q7",
+        "colab_type": "code",
+        "outputId": "8ae932c2-8de7-4c3a-fc28-61c107a9737e",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 68
+        }
+      },
+      "source": [
+        "df.keys()"
+      ],
+      "execution_count": 0,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "Index(['NAT_MARK', 'GPA', 'SCH_NM', 'PROV_NM', 'SUBM', 'Teacher_Gender',\n",
+              "       'ACHIEVEMENTS1', 'MIDTERM1', 'FINAL1'],\n",
+              "      dtype='object')"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 155
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "tQApmeRL5zpF",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "from sklearn.model_selection import train_test_split\n",
+        "from xgboost import XGBRegressor"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "1HeKjJ4P55lv",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "X_train,X_test,y_train, y_test=train_test_split(X,y , test_size=0.3,random_state=42, shuffle=True)\n",
+        "X_valid,X_test,y_valid, y_test=train_test_split(X_test,y_test , test_size=0.5,random_state=123)"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "XwJF6Gmr6kIS",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "from sklearn.pipeline import make_pipeline, Pipeline\n",
+        "from sklearn.linear_model import LinearRegression\n",
+        "from sklearn.decomposition import PCA\n",
+        "from sklearn.preprocessing import StandardScaler\n",
+        "from sklearn.compose import  make_column_transformer, ColumnTransformer\n",
+        "from scipy import stats as st\n",
+        "from sklearn.impute import SimpleImputer\n",
+        "# from feature_engine.missing_data_imputers import MeanMedianImputer\n",
+        "from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, cross_val_score, StratifiedKFold, train_test_split\n",
+        "from sklearn.metrics import mean_squared_error\n"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "eH23xhHCHOEq",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "preprocess = make_column_transformer(\n",
+        "    (['ACHIEVEMENTS1', 'MIDTERM1', 'FINAL1'], make_pipeline(SimpleImputer(), StandardScaler())),\n",
+        "    ([\"SCH_NM\", \"PROV_NM\"], OneHotEncoder()),\n",
+        "remainder='passthrough'    )\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "numeric_features = ['ACHIEVEMENTS1', 'MIDTERM1', 'FINAL1']\n",
+        "numeric_transformer = Pipeline(steps=[\n",
+        "    ('imputer', SimpleImputer(strategy='median')),\n",
+        "    ('scaler', StandardScaler())])\n",
+        "\n",
+        "categorical_features = [\"SCH_NM\", \"PROV_NM\"]\n",
+        "categorical_transformer = Pipeline(steps=[\n",
+        "    ('imputer', SimpleImputer(strategy='constant', fill_value='missing')),\n",
+        "    ('onehot', OneHotEncoder(handle_unknown='ignore'))])\n",
+        "\n",
+        "preprocessor = ColumnTransformer(\n",
+        "    transformers=[\n",
+        "        ('num', numeric_transformer, numeric_features),\n",
+        "        ('cat', categorical_transformer, categorical_features)])\n",
+        "model1 = Pipeline(steps=[('preprocessor', preprocessor),\n",
+        "                  ('reg', XGBRegressor())]) \n"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "aecx4haYU0L0",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "preprocess = make_column_transformer(\n",
+        "    (['ACHIEVEMENTS1', 'MIDTERM1', 'FINAL1'], make_pipeline(SimpleImputer(), StandardScaler())),\n",
+        "    ([\"SCH_NM\", \"PROV_NM\"], OneHotEncoder()),\n",
+        "remainder='passthrough'    )\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "numeric_features = ['ACHIEVEMENTS1', 'MIDTERM1', 'FINAL1']\n",
+        "numeric_transformer = make_pipeline(\n",
+        "     SimpleImputer(strategy='median'),\n",
+        "      StandardScaler()\n",
+        ")\n",
+        "\n",
+        "categorical_features = [\"SCH_NM\", \"PROV_NM\"]\n",
+        "categorical_transformer = make_pipeline (\n",
+        "    SimpleImputer(strategy='constant', fill_value='missing'),\n",
+        "    OneHotEncoder(handle_unknown='ignore')\n",
+        "    )\n",
+        "\n",
+        "preprocessor = make_column_transformer(\n",
+        "     \n",
+        "        (  numeric_transformer, numeric_features),\n",
+        "        (categorical_transformer, categorical_features), \n",
+        "        \n",
+        "        remainder=\"passthrough\"\n",
+        "        )\n",
+        "model = make_pipeline(\n",
+        "       preprocessor,\n",
+        "                   XGBRegressor()\n",
+        "                  ) \n"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "Rek-VjetusOp",
+        "colab_type": "code",
+        "outputId": "b57d1821-4a1d-43c9-8978-600f85975eff",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 51
+        }
+      },
+      "source": [
+        "# model.fit(X_train, y_train)\n",
+        "# print(\"Score score: %f\" % model.score(X_test, y_test))"
+      ],
+      "execution_count": 0,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "[07:30:19] WARNING: /workspace/src/objective/regression_obj.cu:152: reg:linear is now deprecated in favor of reg:squarederror.\n",
+            "Score score: 0.565804\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "BPOkGeACHOT9",
+        "colab_type": "code",
+        "outputId": "b3bebcf6-81c3-4ca7-e8ae-959ccb7fdbd1",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 221
+        }
+      },
+      "source": [
+        "df.isna().mean().sort_values(ascending=True)"
+      ],
+      "execution_count": 0,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "NAT_MARK         0.000000\n",
+              "SCH_NM_72        0.000000\n",
+              "SCH_NM_71        0.000000\n",
+              "SCH_NM_70        0.000000\n",
+              "SCH_NM_69        0.000000\n",
+              "                   ...   \n",
+              "SCH_NM_34        0.000000\n",
+              "PROV_NM_South    0.000000\n",
+              "FINAL1           0.000661\n",
+              "MIDTERM1         0.000744\n",
+              "ACHIEVEMENTS1    0.000744\n",
+              "Length: 110, dtype: float64"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 113
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "vgfESq9Tt56E",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "# preprocess = make_column_transformer(\n",
+        "#     (numerical_features, make_pipeline(SimpleImputer(), StandardScaler())),\n",
+        "#     (categorical_features, OneHotEncoder()))"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "1SNpq3EGCzc5",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "\n",
+        "parameters = { \n",
+        "    \n",
+        "                      'xgbregressor__objective':['reg:squarederror'],\n",
+        "                      'xgbregressor__learning_rate': [0.045,0.05,0.06], \n",
+        "                      'xgbregressor__max_depth': [3,4,5],\n",
+        "                      'xgbregressor__min_child_weight': [2,3,4],\n",
+        "                      'xgbregressor__silent': [1],\n",
+        "                      'xgbregressor__subsample': [0.5,0.55,0.6],\n",
+        "                      'xgbregressor__colsample_bytree': [0.7,0.8,0.85],\n",
+        "                      'xgbregressor__n_estimators': [650,750,800]\n",
+        "              }\n",
+        "\n",
+        "\n"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "IzcVLGtBS1jo",
+        "colab_type": "code",
+        "outputId": "deb121c8-efcb-449a-b030-e283be7b46de",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 187
+        }
+      },
+      "source": [
+        "scores=cross_val_score(\n",
+        "    estimator=model, X=X_train, y=y_train, cv=10, n_jobs=1\n",
+        ")"
+      ],
+      "execution_count": 0,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "[10:03:07] WARNING: /workspace/src/objective/regression_obj.cu:152: reg:linear is now deprecated in favor of reg:squarederror.\n",
+            "[10:03:08] WARNING: /workspace/src/objective/regression_obj.cu:152: reg:linear is now deprecated in favor of reg:squarederror.\n",
+            "[10:03:08] WARNING: /workspace/src/objective/regression_obj.cu:152: reg:linear is now deprecated in favor of reg:squarederror.\n",
+            "[10:03:09] WARNING: /workspace/src/objective/regression_obj.cu:152: reg:linear is now deprecated in favor of reg:squarederror.\n",
+            "[10:03:09] WARNING: /workspace/src/objective/regression_obj.cu:152: reg:linear is now deprecated in favor of reg:squarederror.\n",
+            "[10:03:10] WARNING: /workspace/src/objective/regression_obj.cu:152: reg:linear is now deprecated in favor of reg:squarederror.\n",
+            "[10:03:11] WARNING: /workspace/src/objective/regression_obj.cu:152: reg:linear is now deprecated in favor of reg:squarederror.\n",
+            "[10:03:11] WARNING: /workspace/src/objective/regression_obj.cu:152: reg:linear is now deprecated in favor of reg:squarederror.\n",
+            "[10:03:12] WARNING: /workspace/src/objective/regression_obj.cu:152: reg:linear is now deprecated in favor of reg:squarederror.\n",
+            "[10:03:12] WARNING: /workspace/src/objective/regression_obj.cu:152: reg:linear is now deprecated in favor of reg:squarederror.\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "dxGLRAUMyF8Y",
+        "colab_type": "code",
+        "outputId": "4765768f-3690-4f89-fd5c-aea9ee74cd75",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 34
+        }
+      },
+      "source": [
+        "print('CV accuracy scores: %s' % scores)"
+      ],
+      "execution_count": 0,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "CV accuracy scores: [0.577 0.582 0.583 0.576 0.6   0.555 0.604 0.597 0.583 0.602]\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "8bba0nLNTMM9",
+        "colab_type": "code",
+        "outputId": "40fa7706-7688-41e0-a020-d57ac15d8dec",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 34
+        }
+      },
+      "source": [
+        "print('CV accuracy scores: %s' % scores)"
+      ],
+      "execution_count": 0,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "CV accuracy scores: [nan nan nan nan nan nan nan nan nan nan]\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "ufoKSNUSTMb1",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        ""
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "Eznxgg-dKQ9U",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "\n",
+        "\n",
+        "skf = StratifiedKFold(n_splits=10 ,shuffle = True, random_state = 42)\n",
+        " #cv=skf.split(X_train,y_train),\n",
+        "\n",
+        "random_search = RandomizedSearchCV(model, param_distributions=parameters, error_score='raise',scoring='r2', n_jobs=-1, \n",
+        "                                   verbose=3, refit=True,random_state=42 )"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "KBjPyuJcyRPe",
+        "colab_type": "code",
+        "outputId": "113c9994-2897-4fd7-991b-63bf0e349caf",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 561
+        }
+      },
+      "source": [
+        "random_search.fit(X_train, y_train) #  eval_set=[(X_train, y_train), (X_valid, y_valid)]) #,eval_metric='rmse', early_stopping_rounds=150)"
+      ],
+      "execution_count": 0,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "Fitting 5 folds for each of 10 candidates, totalling 50 fits\n"
+          ],
+          "name": "stdout"
+        },
+        {
+          "output_type": "stream",
+          "text": [
+            "[Parallel(n_jobs=-1)]: Using backend LokyBackend with 2 concurrent workers.\n",
+            "[Parallel(n_jobs=-1)]: Done  28 tasks      | elapsed:  1.9min\n",
+            "[Parallel(n_jobs=-1)]: Done  50 out of  50 | elapsed:  3.1min finished\n"
+          ],
+          "name": "stderr"
+        },
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "RandomizedSearchCV(cv=None, error_score='raise',\n",
+              "                   estimator=Pipeline(memory=None,\n",
+              "                                      steps=[('columntransformer',\n",
+              "                                              ColumnTransformer(n_jobs=None,\n",
+              "                                                                remainder='passthrough',\n",
+              "                                                                sparse_threshold=0.3,\n",
+              "                                                                transformer_weights=None,\n",
+              "                                                                transformers=[('pipeline-1',\n",
+              "                                                                               Pipeline(memory=None,\n",
+              "                                                                                        steps=[('simpleimputer',\n",
+              "                                                                                                SimpleImputer(add_indicator=False,\n",
+              "                                                                                                              copy=True,\n",
+              "                                                                                                              fill_value=None,\n",
+              "                                                                                                              missing_val...\n",
+              "                                        'xgbregressor__learning_rate': [0.045,\n",
+              "                                                                        0.05,\n",
+              "                                                                        0.06],\n",
+              "                                        'xgbregressor__max_depth': [3, 4, 5],\n",
+              "                                        'xgbregressor__min_child_weight': [2, 3,\n",
+              "                                                                           4],\n",
+              "                                        'xgbregressor__n_estimators': [650, 750,\n",
+              "                                                                       800],\n",
+              "                                        'xgbregressor__objective': ['reg:squarederror'],\n",
+              "                                        'xgbregressor__silent': [1],\n",
+              "                                        'xgbregressor__subsample': [0.5, 0.55,\n",
+              "                                                                    0.6]},\n",
+              "                   pre_dispatch='2*n_jobs', random_state=42, refit=True,\n",
+              "                   return_train_score=False, scoring='r2', verbose=3)"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 236
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "9mU5Nr-J_6um",
+        "colab_type": "code",
+        "outputId": "f6f78c42-52ea-4038-a993-3ed68f85c2d6",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 34
+        }
+      },
+      "source": [
+        "rmse = np.sqrt(mean_squared_error(y_test, random_search.predict(X_test)))\n",
+        "print(\"RMSE: %f\" % (rmse))"
+      ],
+      "execution_count": 0,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "RMSE: 7.063873\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "pQROd53bWwl6",
+        "colab_type": "code",
+        "outputId": "fc70f640-13e6-4511-8c1e-655da9cd3e21",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 153
+        }
+      },
+      "source": [
+        "random_search.best_params_"
+      ],
+      "execution_count": 0,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "{'xgbregressor__colsample_bytree': 0.7,\n",
+              " 'xgbregressor__learning_rate': 0.05,\n",
+              " 'xgbregressor__max_depth': 4,\n",
+              " 'xgbregressor__min_child_weight': 4,\n",
+              " 'xgbregressor__n_estimators': 800,\n",
+              " 'xgbregressor__objective': 'reg:squarederror',\n",
+              " 'xgbregressor__silent': 1,\n",
+              " 'xgbregressor__subsample': 0.55}"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 239
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "a1gYWBAyRZLj",
+        "colab_type": "text"
+      },
+      "source": [
+        "#  Learning Curve"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "1BK5f58mRR7t",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "import matplotlib.pyplot as plt\n",
+        "from sklearn.model_selection import learning_curve"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "RB9HV0ChRSIc",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "model_curve = make_pipeline(\n",
+        "       preprocessor,\n",
+        "                   XGBRegressor(colsample_bytree =0.7,learning_rate= 0.05 , max_depth=  4,min_child_weight=4 \n",
+        "                                ,n_estimators= 800 , objective= 'reg:squarederror', subsample= 0.55 )\n",
+        "                  ) \n",
+        "train_sizes, train_scores, test_scores= learning_curve(estimator=model_curve,\n",
+        "                                                       X=X_train,\n",
+        "                                                       y=y_train, \n",
+        "                                                       train_sizes=np.linspace(0.1, 1.0, 10),\n",
+        "                                                       cv=10, \n",
+        "                                                       n_jobs=1)\n",
+        "\n",
+        " "
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "Cp8FtrFhSbD3",
+        "colab_type": "code",
+        "outputId": "a823ea36-ca3d-4264-bf6b-f957fdfa46a3",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 279
+        }
+      },
+      "source": [
+        "\n",
+        "train_mean = np.mean(train_scores, axis=1)\n",
+        "train_std = np.std(train_scores, axis=1) \n",
+        "test_mean = np.mean(test_scores, axis=1) \n",
+        "test_std = np.std(test_scores, axis=1)\n",
+        "plt.plot(train_sizes, train_mean, color='blue', marker='o',markersize=5, label='Training accuracy')\n",
+        "plt.fill_between(train_sizes, train_mean + train_std, train_mean - train_std, alpha=0.15, color='blue')\n",
+        "plt.plot(train_sizes, test_mean, color='green', linestyle='--', marker='s', markersize=5, label='Validation accuracy')\n",
+        "plt.fill_between(train_sizes, test_mean + test_std,test_mean - test_std, alpha=0.15, color='green')\n",
+        "plt.grid()\n",
+        "plt.xlabel('Number of training examples') \n",
+        "plt.ylabel('Accuracy') \n",
+        "plt.legend(loc='lower right') \n",
+        "plt.ylim([0.8, 1.03])\n",
+        "plt.show()"
+      ],
+      "execution_count": 0,
+      "outputs": [
+        {
+          "output_type": "display_data",
+          "data": {
+            "image/png": "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3/nOdzjggANo0aIFhx56KKtXr6ZDhw47LNO7d+/Ksh49elBSUkLz5s058sgjK6/7Hzp0KJMmTdpp+1u2bGH06NHMnz+fnJwc3n//fQBeffVVfvCDH9C0aVMAWrVqRVlZGatWrWLQoEFAdPNZOi666KLK6UWLFnHzzTezdu1aysvLOeusswD485//zOOPPw5ATk4OLVu2pGXLlrRu3Zp33nmH1atX07NnT1pnOmvXQAlCZB939tlRn0PVPoizz878vpo1a1Y5/bOf/Yx+/frxwgsvUFJSQkFBQew6BxxwQOV0Tk4OW7du3a1lqvPrX/+atm3bsmDBArZv3572l36qRo0asT3lMKzq/Qap73vYsGFMnTqV3NxcJk+eTFFRUY3bvvTSS5k8eTKffPIJw4cP3+XY9oSuYhLZx+XkRB3STz8NEyZEP/ekgzpd69ato3379gBMnjw549vv0qULK1eupKSkBIApU6ZUG0e7du3Yb7/9eOKJJ9gWLuE688wzefTRR9m4cSMAn3/+OS1atKBDhw5MnToVgM2bN7Nx40aOOOIIFi9ezObNm1m7di2zZs2qNq6ysjLatWvHli1beOqppyrLTz/9dCZOnAhEndnr1q0DYNCgQbz88ssUFxdXHm3UFSUIESEnJzqddPPN0c+6uNDm+uuv58Ybb6Rnz5679B9/ug488EAefPBB+vfvT15eHi1atKBly5Y7LXfFFVfw2GOPkZuby5IlSyr/2+/fvz/nnnsu+fn59OjRg7vvvhuAJ554gvvuu48TTjiBPn368Mknn9CxY0cuvPBCjj/+eC688EJ69uxZbVy33norJ510En379uXYY4+tLL/33nuZPXs23bt3Jy8vj8WLFwOw//77069fPy688MK6vwKquodVZ9srLy9vDx/dnZ5seRB5qmyLWfHuucWLF9dYv379+jqKJDN2N96ysjJ3d9++fbuPGjXKf/WrX2UyrBplqo23bdvmubm5/v777+/xtuJ+L4geAR37vaojCBHZaz300EP06NGDbt26sW7dOi6//PL6DmmXLF68mK9//eucfvrpHH300XW+f3VSi8hea+zYsYwdO7a+w9htXbt2rbwvoj7oCEJERGIpQYiISCwlCBERiaUEISIisZQgRCTj+vXrx8yZM3cou+eeexg1alS16xQUFDB37lwABgwYwNq1a3daZvz48ZX3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\n",
+            "text/plain": [
+              "<Figure size 432x288 with 1 Axes>"
+            ]
+          },
+          "metadata": {
+            "tags": [],
+            "needs_background": "light"
+          }
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "YjGRRYtYRSU5",
+        "colab_type": "text"
+      },
+      "source": [
+        ""
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "HkMspLShe2G6",
+        "colab_type": "code",
+        "outputId": "c666832b-d165-4fd6-803f-a9609ac6aa96",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 1000
+        }
+      },
+      "source": [
+        "print('\\n All results:')\n",
+        "print(random_search.cv_results_)\n",
+        "print('\\n Best estimator:')\n",
+        "print(random_search.best_estimator_)\n",
+        "print('\\n Best normalized gini score for %d-fold search with %d parameter combinations:' % (3, 5))\n",
+        "print(random_search.best_score_ * 2 - 1)\n",
+        "print('\\n Best hyperparameters:')\n",
+        "print(random_search.best_params_)\n",
+        "results = pd.DataFrame(random_search.cv_results_)\n",
+        "results.to_csv('xgb-random-grid-search-results-01.csv', index=False)"
+      ],
+      "execution_count": 0,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "\n",
+            " All results:\n",
+            "{'mean_fit_time': array([7.252, 9.718, 8.302, 7.055, 6.234, 5.702, 6.83 , 4.82 , 7.12 ,\n",
+            "       5.009]), 'std_fit_time': array([0.017, 2.282, 0.037, 0.024, 0.015, 0.013, 0.033, 0.021, 0.038,\n",
+            "       0.019]), 'mean_score_time': array([0.15 , 0.155, 0.148, 0.119, 0.1  , 0.088, 0.135, 0.08 , 0.133,\n",
+            "       0.076]), 'std_score_time': array([0.009, 0.004, 0.002, 0.003, 0.001, 0.001, 0.004, 0.001, 0.005,\n",
+            "       0.01 ]), 'param_reg__subsample': masked_array(data=[0.5, 0.55, 0.6, 0.55, 0.6, 0.6, 0.5, 0.5, 0.55, 0.5],\n",
+            "             mask=[False, False, False, False, False, False, False, False,\n",
+            "                   False, False],\n",
+            "       fill_value='?',\n",
+            "            dtype=object), 'param_reg__silent': masked_array(data=[1, 1, 1, 1, 1, 1, 1, 1, 1, 1],\n",
+            "             mask=[False, False, False, False, False, False, False, False,\n",
+            "                   False, False],\n",
+            "       fill_value='?',\n",
+            "            dtype=object), 'param_reg__objective': masked_array(data=['reg:linear', 'reg:linear', 'reg:linear', 'reg:linear',\n",
+            "                   'reg:linear', 'reg:linear', 'reg:linear', 'reg:linear',\n",
+            "                   'reg:linear', 'reg:linear'],\n",
+            "             mask=[False, False, False, False, False, False, False, False,\n",
+            "                   False, False],\n",
+            "       fill_value='?',\n",
+            "            dtype=object), 'param_reg__n_estimators': masked_array(data=[650, 750, 750, 750, 650, 750, 650, 650, 800, 650],\n",
+            "             mask=[False, False, False, False, False, False, False, False,\n",
+            "                   False, False],\n",
+            "       fill_value='?',\n",
+            "            dtype=object), 'param_reg__min_child_weight': masked_array(data=[3, 3, 2, 2, 2, 4, 4, 2, 4, 4],\n",
+            "             mask=[False, False, False, False, False, False, False, False,\n",
+            "                   False, False],\n",
+            "       fill_value='?',\n",
+            "            dtype=object), 'param_reg__max_depth': masked_array(data=[5, 5, 5, 4, 4, 3, 5, 3, 4, 3],\n",
+            "             mask=[False, False, False, False, False, False, False, False,\n",
+            "                   False, False],\n",
+            "       fill_value='?',\n",
+            "            dtype=object), 'param_reg__learning_rate': masked_array(data=[0.06, 0.05, 0.045, 0.05, 0.045, 0.045, 0.045, 0.05,\n",
+            "                   0.05, 0.05],\n",
+            "             mask=[False, False, False, False, False, False, False, False,\n",
+            "                   False, False],\n",
+            "       fill_value='?',\n",
+            "            dtype=object), 'param_reg__colsample_bytree': masked_array(data=[0.8, 0.7, 0.8, 0.8, 0.85, 0.8, 0.7, 0.7, 0.7, 0.8],\n",
+            "             mask=[False, False, False, False, False, False, False, False,\n",
+            "                   False, False],\n",
+            "       fill_value='?',\n",
+            "            dtype=object), 'params': [{'reg__subsample': 0.5, 'reg__silent': 1, 'reg__objective': 'reg:linear', 'reg__n_estimators': 650, 'reg__min_child_weight': 3, 'reg__max_depth': 5, 'reg__learning_rate': 0.06, 'reg__colsample_bytree': 0.8}, {'reg__subsample': 0.55, 'reg__silent': 1, 'reg__objective': 'reg:linear', 'reg__n_estimators': 750, 'reg__min_child_weight': 3, 'reg__max_depth': 5, 'reg__learning_rate': 0.05, 'reg__colsample_bytree': 0.7}, {'reg__subsample': 0.6, 'reg__silent': 1, 'reg__objective': 'reg:linear', 'reg__n_estimators': 750, 'reg__min_child_weight': 2, 'reg__max_depth': 5, 'reg__learning_rate': 0.045, 'reg__colsample_bytree': 0.8}, {'reg__subsample': 0.55, 'reg__silent': 1, 'reg__objective': 'reg:linear', 'reg__n_estimators': 750, 'reg__min_child_weight': 2, 'reg__max_depth': 4, 'reg__learning_rate': 0.05, 'reg__colsample_bytree': 0.8}, {'reg__subsample': 0.6, 'reg__silent': 1, 'reg__objective': 'reg:linear', 'reg__n_estimators': 650, 'reg__min_child_weight': 2, 'reg__max_depth': 4, 'reg__learning_rate': 0.045, 'reg__colsample_bytree': 0.85}, {'reg__subsample': 0.6, 'reg__silent': 1, 'reg__objective': 'reg:linear', 'reg__n_estimators': 750, 'reg__min_child_weight': 4, 'reg__max_depth': 3, 'reg__learning_rate': 0.045, 'reg__colsample_bytree': 0.8}, {'reg__subsample': 0.5, 'reg__silent': 1, 'reg__objective': 'reg:linear', 'reg__n_estimators': 650, 'reg__min_child_weight': 4, 'reg__max_depth': 5, 'reg__learning_rate': 0.045, 'reg__colsample_bytree': 0.7}, {'reg__subsample': 0.5, 'reg__silent': 1, 'reg__objective': 'reg:linear', 'reg__n_estimators': 650, 'reg__min_child_weight': 2, 'reg__max_depth': 3, 'reg__learning_rate': 0.05, 'reg__colsample_bytree': 0.7}, {'reg__subsample': 0.55, 'reg__silent': 1, 'reg__objective': 'reg:linear', 'reg__n_estimators': 800, 'reg__min_child_weight': 4, 'reg__max_depth': 4, 'reg__learning_rate': 0.05, 'reg__colsample_bytree': 0.7}, {'reg__subsample': 0.5, 'reg__silent': 1, 'reg__objective': 'reg:linear', 'reg__n_estimators': 650, 'reg__min_child_weight': 4, 'reg__max_depth': 3, 'reg__learning_rate': 0.05, 'reg__colsample_bytree': 0.8}], 'split0_test_score': array([-49.098, -48.202, -48.655, -48.255, -48.061, -47.59 , -47.838,\n",
+            "       -47.776, -47.502, -47.843]), 'split1_test_score': array([-45.426, -45.328, -45.514, -45.22 , -45.167, -45.405, -45.148,\n",
+            "       -45.727, -45.128, -45.624]), 'split2_test_score': array([-47.269, -47.031, -46.938, -46.88 , -46.721, -47.073, -46.815,\n",
+            "       -47.241, -46.872, -47.149]), 'split3_test_score': array([-41.853, -41.731, -41.814, -41.336, -41.482, -41.122, -41.142,\n",
+            "       -41.174, -41.231, -41.19 ]), 'split4_test_score': array([-43.645, -43.503, -43.319, -43.093, -42.789, -42.362, -43.079,\n",
+            "       -42.524, -42.937, -42.631]), 'mean_test_score': array([-45.458, -45.159, -45.248, -44.957, -44.844, -44.71 , -44.804,\n",
+            "       -44.888, -44.734, -44.888]), 'std_test_score': array([2.562, 2.336, 2.451, 2.499, 2.429, 2.559, 2.439, 2.606, 2.362,\n",
+            "       2.575]), 'rank_test_score': array([10,  8,  9,  7,  4,  1,  3,  6,  2,  5], dtype=int32)}\n",
+            "\n",
+            " Best estimator:\n",
+            "Pipeline(memory=None,\n",
+            "         steps=[('preprocessor',\n",
+            "                 ColumnTransformer(n_jobs=None, remainder='drop',\n",
+            "                                   sparse_threshold=0.3,\n",
+            "                                   transformer_weights=None,\n",
+            "                                   transformers=[('num',\n",
+            "                                                  Pipeline(memory=None,\n",
+            "                                                           steps=[('imputer',\n",
+            "                                                                   SimpleImputer(add_indicator=False,\n",
+            "                                                                                 copy=True,\n",
+            "                                                                                 fill_value=None,\n",
+            "                                                                                 missing_values=nan,\n",
+            "                                                                                 strategy='median',\n",
+            "                                                                                 verbose=0)),\n",
+            "                                                                  ('scaler',\n",
+            "                                                                   StandardScaler(copy=True,\n",
+            "                                                                                  with_mean...\n",
+            "                              colsample_bylevel=1, colsample_bynode=1,\n",
+            "                              colsample_bytree=0.8, gamma=0,\n",
+            "                              importance_type='gain', learning_rate=0.045,\n",
+            "                              max_delta_step=0, max_depth=3, min_child_weight=4,\n",
+            "                              missing=None, n_estimators=750, n_jobs=1,\n",
+            "                              nthread=None, objective='reg:linear',\n",
+            "                              random_state=0, reg_alpha=0, reg_lambda=1,\n",
+            "                              scale_pos_weight=1, seed=None, silent=1,\n",
+            "                              subsample=0.6, verbosity=1))],\n",
+            "         verbose=False)\n",
+            "\n",
+            " Best normalized gini score for 3-fold search with 5 parameter combinations:\n",
+            "-90.4204189808773\n",
+            "\n",
+            " Best hyperparameters:\n",
+            "{'reg__subsample': 0.6, 'reg__silent': 1, 'reg__objective': 'reg:linear', 'reg__n_estimators': 750, 'reg__min_child_weight': 4, 'reg__max_depth': 3, 'reg__learning_rate': 0.045, 'reg__colsample_bytree': 0.8}\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "tGqggdiy0q1j",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "df=pd.read_csv(\"/content/drive/My Drive/Colab Notebooks/data/aws_data_regression.csv\")"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "s2EQTYNrZ5Mx",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "df.set_index(\"CPR_NO\", inplace=True)"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "7Mo84lTwZ0Lk",
+        "colab_type": "code",
+        "outputId": "3f736afa-1b5f-44e7-ef81-a41770658ae9",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 284
+        }
+      },
+      "source": [
+        "df.head()"
+      ],
+      "execution_count": 0,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/html": [
+              "<div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>NAT_MARK</th>\n",
+              "      <th>GPA</th>\n",
+              "      <th>SUBM</th>\n",
+              "      <th>Teacher_Gender</th>\n",
+              "      <th>ACHIEVEMENTS1</th>\n",
+              "      <th>MIDTERM1</th>\n",
+              "      <th>FINAL1</th>\n",
+              "      <th>SCH_NM_0</th>\n",
+              "      <th>SCH_NM_1</th>\n",
+              "      <th>SCH_NM_2</th>\n",
+              "      <th>SCH_NM_3</th>\n",
+              "      <th>SCH_NM_4</th>\n",
+              "      <th>SCH_NM_5</th>\n",
+              "      <th>SCH_NM_6</th>\n",
+              "      <th>SCH_NM_7</th>\n",
+              "      <th>SCH_NM_8</th>\n",
+              "      <th>SCH_NM_9</th>\n",
+              "      <th>SCH_NM_10</th>\n",
+              "      <th>SCH_NM_11</th>\n",
+              "      <th>SCH_NM_12</th>\n",
+              "      <th>SCH_NM_13</th>\n",
+              "      <th>SCH_NM_14</th>\n",
+              "      <th>SCH_NM_15</th>\n",
+              "      <th>SCH_NM_16</th>\n",
+              "      <th>SCH_NM_17</th>\n",
+              "      <th>SCH_NM_18</th>\n",
+              "      <th>SCH_NM_19</th>\n",
+              "      <th>SCH_NM_20</th>\n",
+              "      <th>SCH_NM_21</th>\n",
+              "      <th>SCH_NM_22</th>\n",
+              "      <th>SCH_NM_23</th>\n",
+              "      <th>SCH_NM_24</th>\n",
+              "      <th>SCH_NM_25</th>\n",
+              "      <th>SCH_NM_26</th>\n",
+              "      <th>SCH_NM_27</th>\n",
+              "      <th>SCH_NM_28</th>\n",
+              "      <th>SCH_NM_29</th>\n",
+              "      <th>SCH_NM_30</th>\n",
+              "      <th>SCH_NM_31</th>\n",
+              "      <th>SCH_NM_32</th>\n",
+              "      <th>...</th>\n",
+              "      <th>SCH_NM_63</th>\n",
+              "      <th>SCH_NM_64</th>\n",
+              "      <th>SCH_NM_65</th>\n",
+              "      <th>SCH_NM_66</th>\n",
+              "      <th>SCH_NM_67</th>\n",
+              "      <th>SCH_NM_68</th>\n",
+              "      <th>SCH_NM_69</th>\n",
+              "      <th>SCH_NM_70</th>\n",
+              "      <th>SCH_NM_71</th>\n",
+              "      <th>SCH_NM_72</th>\n",
+              "      <th>SCH_NM_73</th>\n",
+              "      <th>SCH_NM_74</th>\n",
+              "      <th>SCH_NM_75</th>\n",
+              "      <th>SCH_NM_76</th>\n",
+              "      <th>SCH_NM_77</th>\n",
+              "      <th>SCH_NM_78</th>\n",
+              "      <th>SCH_NM_79</th>\n",
+              "      <th>SCH_NM_80</th>\n",
+              "      <th>SCH_NM_81</th>\n",
+              "      <th>SCH_NM_82</th>\n",
+              "      <th>SCH_NM_83</th>\n",
+              "      <th>SCH_NM_84</th>\n",
+              "      <th>SCH_NM_85</th>\n",
+              "      <th>SCH_NM_86</th>\n",
+              "      <th>SCH_NM_87</th>\n",
+              "      <th>SCH_NM_88</th>\n",
+              "      <th>SCH_NM_89</th>\n",
+              "      <th>SCH_NM_90</th>\n",
+              "      <th>SCH_NM_91</th>\n",
+              "      <th>SCH_NM_92</th>\n",
+              "      <th>SCH_NM_93</th>\n",
+              "      <th>SCH_NM_94</th>\n",
+              "      <th>SCH_NM_95</th>\n",
+              "      <th>SCH_NM_96</th>\n",
+              "      <th>SCH_NM_97</th>\n",
+              "      <th>SCH_NM_98</th>\n",
+              "      <th>PROV_NM_Cap</th>\n",
+              "      <th>PROV_NM_Muharaq</th>\n",
+              "      <th>PROV_NM_North</th>\n",
+              "      <th>PROV_NM_South</th>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>CPR_NO</th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "      <th></th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>70913390</th>\n",
+              "      <td>53.7</td>\n",
+              "      <td>92.9</td>\n",
+              "      <td>1</td>\n",
+              "      <td>1</td>\n",
+              "      <td>28.0</td>\n",
+              "      <td>17.0</td>\n",
+              "      <td>45.0</td>\n",
+              "      <td>1</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>...</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>1</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>71105956</th>\n",
+              "      <td>49.7</td>\n",
+              "      <td>89.5</td>\n",
+              "      <td>1</td>\n",
+              "      <td>1</td>\n",
+              "      <td>27.0</td>\n",
+              "      <td>14.0</td>\n",
+              "      <td>41.5</td>\n",
+              "      <td>1</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>...</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>1</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>70712190</th>\n",
+              "      <td>52.1</td>\n",
+              "      <td>86.2</td>\n",
+              "      <td>1</td>\n",
+              "      <td>1</td>\n",
+              "      <td>27.0</td>\n",
+              "      <td>13.0</td>\n",
+              "      <td>27.5</td>\n",
+              "      <td>1</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>...</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>1</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>70207496</th>\n",
+              "      <td>52.9</td>\n",
+              "      <td>89.9</td>\n",
+              "      <td>1</td>\n",
+              "      <td>1</td>\n",
+              "      <td>26.0</td>\n",
+              "      <td>15.0</td>\n",
+              "      <td>44.0</td>\n",
+              "      <td>1</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>...</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>1</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>70507953</th>\n",
+              "      <td>52.1</td>\n",
+              "      <td>86.2</td>\n",
+              "      <td>1</td>\n",
+              "      <td>1</td>\n",
+              "      <td>25.0</td>\n",
+              "      <td>14.0</td>\n",
+              "      <td>31.5</td>\n",
+              "      <td>1</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>...</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>1</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "      <td>0</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "<p>5 rows × 110 columns</p>\n",
+              "</div>"
+            ],
+            "text/plain": [
+              "          NAT_MARK   GPA  SUBM  ...  PROV_NM_Muharaq  PROV_NM_North  PROV_NM_South\n",
+              "CPR_NO                          ...                                               \n",
+              "70913390      53.7  92.9     1  ...                0              0              0\n",
+              "71105956      49.7  89.5     1  ...                0              0              0\n",
+              "70712190      52.1  86.2     1  ...                0              0              0\n",
+              "70207496      52.9  89.9     1  ...                0              0              0\n",
+              "70507953      52.1  86.2     1  ...                0              0              0\n",
+              "\n",
+              "[5 rows x 110 columns]"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 277
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "WnrkzJELgIXS",
+        "colab_type": "code",
+        "outputId": "7337e332-729d-438f-e9b2-44f528c11007",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 51
+        }
+      },
+      "source": [
+        "df.isna().mean().value_counts()"
+      ],
+      "execution_count": 0,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "0.0    110\n",
+              "dtype: int64"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 278
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "1T1z07kJaJuB",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "xgb=XGBRegressor(colsample_bytree =0.7,learning_rate= 0.05 , max_depth= 4,min_child_weight=5 \n",
+        "                                ,n_estimators= 800 , objective= 'reg:squarederror', subsample= 0.55 )"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "60BXMY_3addf",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "X=df.iloc[:, 2:]\n",
+        "y=df.iloc[:,0]"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "sU9x6if1anL8",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "X_train,X_test,y_train, y_test=train_test_split(X,y , test_size=0.3,random_state=42)\n",
+        "X_valid,X_test,y_valid, y_test=train_test_split(X_test,y_test , test_size=0.5,random_state=123)"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "nZ0YKnc_asoP",
+        "colab_type": "code",
+        "outputId": "c3f518dd-d05f-4657-fb05-0ec7227408ce",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 1000
+        }
+      },
+      "source": [
+        "xgb.fit(X_train, y_train , eval_set=[(X_train, y_train), (X_valid, y_valid)],eval_metric='rmse', early_stopping_rounds=150)"
+      ],
+      "execution_count": 0,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "[0]\tvalidation_0-rmse:49.1545\tvalidation_1-rmse:49.5566\n",
+            "Multiple eval metrics have been passed: 'validation_1-rmse' will be used for early stopping.\n",
+            "\n",
+            "Will train until validation_1-rmse hasn't improved in 150 rounds.\n",
+            "[1]\tvalidation_0-rmse:46.7522\tvalidation_1-rmse:47.1543\n",
+            "[2]\tvalidation_0-rmse:44.4776\tvalidation_1-rmse:44.8725\n",
+            "[3]\tvalidation_0-rmse:42.3632\tvalidation_1-rmse:42.7642\n",
+            "[4]\tvalidation_0-rmse:40.3211\tvalidation_1-rmse:40.7171\n",
+            "[5]\tvalidation_0-rmse:38.4252\tvalidation_1-rmse:38.8244\n",
+            "[6]\tvalidation_0-rmse:36.578\tvalidation_1-rmse:36.9782\n",
+            "[7]\tvalidation_0-rmse:34.833\tvalidation_1-rmse:35.2265\n",
+            "[8]\tvalidation_0-rmse:33.1681\tvalidation_1-rmse:33.5643\n",
+            "[9]\tvalidation_0-rmse:31.5908\tvalidation_1-rmse:31.9879\n",
+            "[10]\tvalidation_0-rmse:30.0885\tvalidation_1-rmse:30.4903\n",
+            "[11]\tvalidation_0-rmse:28.6725\tvalidation_1-rmse:29.0758\n",
+            "[12]\tvalidation_0-rmse:27.334\tvalidation_1-rmse:27.7397\n",
+            "[13]\tvalidation_0-rmse:26.0727\tvalidation_1-rmse:26.4817\n",
+            "[14]\tvalidation_0-rmse:24.9039\tvalidation_1-rmse:25.3199\n",
+            "[15]\tvalidation_0-rmse:23.7645\tvalidation_1-rmse:24.1828\n",
+            "[16]\tvalidation_0-rmse:22.6881\tvalidation_1-rmse:23.1107\n",
+            "[17]\tvalidation_0-rmse:21.6694\tvalidation_1-rmse:22.0962\n",
+            "[18]\tvalidation_0-rmse:20.7093\tvalidation_1-rmse:21.1388\n",
+            "[19]\tvalidation_0-rmse:19.7957\tvalidation_1-rmse:20.2295\n",
+            "[20]\tvalidation_0-rmse:18.9338\tvalidation_1-rmse:19.3746\n",
+            "[21]\tvalidation_0-rmse:18.1251\tvalidation_1-rmse:18.5714\n",
+            "[22]\tvalidation_0-rmse:17.3583\tvalidation_1-rmse:17.8094\n",
+            "[23]\tvalidation_0-rmse:16.6378\tvalidation_1-rmse:17.0959\n",
+            "[24]\tvalidation_0-rmse:15.9626\tvalidation_1-rmse:16.4288\n",
+            "[25]\tvalidation_0-rmse:15.3226\tvalidation_1-rmse:15.7952\n",
+            "[26]\tvalidation_0-rmse:14.7245\tvalidation_1-rmse:15.2013\n",
+            "[27]\tvalidation_0-rmse:14.1538\tvalidation_1-rmse:14.6384\n",
+            "[28]\tvalidation_0-rmse:13.6189\tvalidation_1-rmse:14.1148\n",
+            "[29]\tvalidation_0-rmse:13.1184\tvalidation_1-rmse:13.6218\n",
+            "[30]\tvalidation_0-rmse:12.6521\tvalidation_1-rmse:13.1657\n",
+            "[31]\tvalidation_0-rmse:12.2146\tvalidation_1-rmse:12.7346\n",
+            "[32]\tvalidation_0-rmse:11.8053\tvalidation_1-rmse:12.3337\n",
+            "[33]\tvalidation_0-rmse:11.4207\tvalidation_1-rmse:11.9583\n",
+            "[34]\tvalidation_0-rmse:11.0625\tvalidation_1-rmse:11.6084\n",
+            "[35]\tvalidation_0-rmse:10.7271\tvalidation_1-rmse:11.2831\n",
+            "[36]\tvalidation_0-rmse:10.4149\tvalidation_1-rmse:10.98\n",
+            "[37]\tvalidation_0-rmse:10.1233\tvalidation_1-rmse:10.6959\n",
+            "[38]\tvalidation_0-rmse:9.85248\tvalidation_1-rmse:10.4357\n",
+            "[39]\tvalidation_0-rmse:9.6076\tvalidation_1-rmse:10.1998\n",
+            "[40]\tvalidation_0-rmse:9.37775\tvalidation_1-rmse:9.97751\n",
+            "[41]\tvalidation_0-rmse:9.16347\tvalidation_1-rmse:9.77106\n",
+            "[42]\tvalidation_0-rmse:8.96442\tvalidation_1-rmse:9.58057\n",
+            "[43]\tvalidation_0-rmse:8.77883\tvalidation_1-rmse:9.40245\n",
+            "[44]\tvalidation_0-rmse:8.60703\tvalidation_1-rmse:9.23771\n",
+            "[45]\tvalidation_0-rmse:8.44816\tvalidation_1-rmse:9.08579\n",
+            "[46]\tvalidation_0-rmse:8.30152\tvalidation_1-rmse:8.94439\n",
+            "[47]\tvalidation_0-rmse:8.16702\tvalidation_1-rmse:8.81704\n",
+            "[48]\tvalidation_0-rmse:8.04173\tvalidation_1-rmse:8.69826\n",
+            "[49]\tvalidation_0-rmse:7.93033\tvalidation_1-rmse:8.59277\n",
+            "[50]\tvalidation_0-rmse:7.8259\tvalidation_1-rmse:8.49346\n",
+            "[51]\tvalidation_0-rmse:7.72968\tvalidation_1-rmse:8.40273\n",
+            "[52]\tvalidation_0-rmse:7.64112\tvalidation_1-rmse:8.32149\n",
+            "[53]\tvalidation_0-rmse:7.56236\tvalidation_1-rmse:8.24841\n",
+            "[54]\tvalidation_0-rmse:7.48865\tvalidation_1-rmse:8.18086\n",
+            "[55]\tvalidation_0-rmse:7.41941\tvalidation_1-rmse:8.11521\n",
+            "[56]\tvalidation_0-rmse:7.35629\tvalidation_1-rmse:8.05381\n",
+            "[57]\tvalidation_0-rmse:7.29726\tvalidation_1-rmse:7.99788\n",
+            "[58]\tvalidation_0-rmse:7.2433\tvalidation_1-rmse:7.94654\n",
+            "[59]\tvalidation_0-rmse:7.19586\tvalidation_1-rmse:7.90136\n",
+            "[60]\tvalidation_0-rmse:7.15031\tvalidation_1-rmse:7.86006\n",
+            "[61]\tvalidation_0-rmse:7.10931\tvalidation_1-rmse:7.82453\n",
+            "[62]\tvalidation_0-rmse:7.0697\tvalidation_1-rmse:7.78533\n",
+            "[63]\tvalidation_0-rmse:7.03635\tvalidation_1-rmse:7.75381\n",
+            "[64]\tvalidation_0-rmse:7.00405\tvalidation_1-rmse:7.7223\n",
+            "[65]\tvalidation_0-rmse:6.97383\tvalidation_1-rmse:7.69352\n",
+            "[66]\tvalidation_0-rmse:6.94625\tvalidation_1-rmse:7.66722\n",
+            "[67]\tvalidation_0-rmse:6.92187\tvalidation_1-rmse:7.64398\n",
+            "[68]\tvalidation_0-rmse:6.89924\tvalidation_1-rmse:7.62376\n",
+            "[69]\tvalidation_0-rmse:6.87866\tvalidation_1-rmse:7.6044\n",
+            "[70]\tvalidation_0-rmse:6.85833\tvalidation_1-rmse:7.58522\n",
+            "[71]\tvalidation_0-rmse:6.84163\tvalidation_1-rmse:7.57099\n",
+            "[72]\tvalidation_0-rmse:6.82523\tvalidation_1-rmse:7.55668\n",
+            "[73]\tvalidation_0-rmse:6.81058\tvalidation_1-rmse:7.5422\n",
+            "[74]\tvalidation_0-rmse:6.7974\tvalidation_1-rmse:7.53028\n",
+            "[75]\tvalidation_0-rmse:6.78404\tvalidation_1-rmse:7.51813\n",
+            "[76]\tvalidation_0-rmse:6.77311\tvalidation_1-rmse:7.50856\n",
+            "[77]\tvalidation_0-rmse:6.76181\tvalidation_1-rmse:7.49868\n",
+            "[78]\tvalidation_0-rmse:6.75057\tvalidation_1-rmse:7.48808\n",
+            "[79]\tvalidation_0-rmse:6.74053\tvalidation_1-rmse:7.4786\n",
+            "[80]\tvalidation_0-rmse:6.73157\tvalidation_1-rmse:7.46942\n",
+            "[81]\tvalidation_0-rmse:6.72391\tvalidation_1-rmse:7.46331\n",
+            "[82]\tvalidation_0-rmse:6.71587\tvalidation_1-rmse:7.45662\n",
+            "[83]\tvalidation_0-rmse:6.70882\tvalidation_1-rmse:7.44979\n",
+            "[84]\tvalidation_0-rmse:6.70127\tvalidation_1-rmse:7.44326\n",
+            "[85]\tvalidation_0-rmse:6.69295\tvalidation_1-rmse:7.43698\n",
+            "[86]\tvalidation_0-rmse:6.68619\tvalidation_1-rmse:7.43152\n",
+            "[87]\tvalidation_0-rmse:6.68055\tvalidation_1-rmse:7.4264\n",
+            "[88]\tvalidation_0-rmse:6.67482\tvalidation_1-rmse:7.42069\n",
+            "[89]\tvalidation_0-rmse:6.66752\tvalidation_1-rmse:7.41497\n",
+            "[90]\tvalidation_0-rmse:6.66263\tvalidation_1-rmse:7.41105\n",
+            "[91]\tvalidation_0-rmse:6.65803\tvalidation_1-rmse:7.40654\n",
+            "[92]\tvalidation_0-rmse:6.65393\tvalidation_1-rmse:7.40356\n",
+            "[93]\tvalidation_0-rmse:6.64819\tvalidation_1-rmse:7.39956\n",
+            "[94]\tvalidation_0-rmse:6.64434\tvalidation_1-rmse:7.39685\n",
+            "[95]\tvalidation_0-rmse:6.64\tvalidation_1-rmse:7.39355\n",
+            "[96]\tvalidation_0-rmse:6.63654\tvalidation_1-rmse:7.39025\n",
+            "[97]\tvalidation_0-rmse:6.63183\tvalidation_1-rmse:7.38358\n",
+            "[98]\tvalidation_0-rmse:6.62867\tvalidation_1-rmse:7.38063\n",
+            "[99]\tvalidation_0-rmse:6.62465\tvalidation_1-rmse:7.37721\n",
+            "[100]\tvalidation_0-rmse:6.62099\tvalidation_1-rmse:7.374\n",
+            "[101]\tvalidation_0-rmse:6.61703\tvalidation_1-rmse:7.37132\n",
+            "[102]\tvalidation_0-rmse:6.61393\tvalidation_1-rmse:7.36964\n",
+            "[103]\tvalidation_0-rmse:6.61015\tvalidation_1-rmse:7.36701\n",
+            "[104]\tvalidation_0-rmse:6.6078\tvalidation_1-rmse:7.3646\n",
+            "[105]\tvalidation_0-rmse:6.60505\tvalidation_1-rmse:7.36272\n",
+            "[106]\tvalidation_0-rmse:6.60225\tvalidation_1-rmse:7.35982\n",
+            "[107]\tvalidation_0-rmse:6.59936\tvalidation_1-rmse:7.3576\n",
+            "[108]\tvalidation_0-rmse:6.59624\tvalidation_1-rmse:7.35594\n",
+            "[109]\tvalidation_0-rmse:6.5939\tvalidation_1-rmse:7.35313\n",
+            "[110]\tvalidation_0-rmse:6.59059\tvalidation_1-rmse:7.34959\n",
+            "[111]\tvalidation_0-rmse:6.58743\tvalidation_1-rmse:7.34707\n",
+            "[112]\tvalidation_0-rmse:6.58483\tvalidation_1-rmse:7.34437\n",
+            "[113]\tvalidation_0-rmse:6.58256\tvalidation_1-rmse:7.34149\n",
+            "[114]\tvalidation_0-rmse:6.58051\tvalidation_1-rmse:7.3402\n",
+            "[115]\tvalidation_0-rmse:6.57666\tvalidation_1-rmse:7.3393\n",
+            "[116]\tvalidation_0-rmse:6.57414\tvalidation_1-rmse:7.33733\n",
+            "[117]\tvalidation_0-rmse:6.57102\tvalidation_1-rmse:7.33388\n",
+            "[118]\tvalidation_0-rmse:6.56812\tvalidation_1-rmse:7.33293\n",
+            "[119]\tvalidation_0-rmse:6.56559\tvalidation_1-rmse:7.33157\n",
+            "[120]\tvalidation_0-rmse:6.56354\tvalidation_1-rmse:7.33023\n",
+            "[121]\tvalidation_0-rmse:6.56074\tvalidation_1-rmse:7.32799\n",
+            "[122]\tvalidation_0-rmse:6.55894\tvalidation_1-rmse:7.32601\n",
+            "[123]\tvalidation_0-rmse:6.5558\tvalidation_1-rmse:7.32522\n",
+            "[124]\tvalidation_0-rmse:6.55396\tvalidation_1-rmse:7.3234\n",
+            "[125]\tvalidation_0-rmse:6.5504\tvalidation_1-rmse:7.32137\n",
+            "[126]\tvalidation_0-rmse:6.54873\tvalidation_1-rmse:7.31946\n",
+            "[127]\tvalidation_0-rmse:6.54568\tvalidation_1-rmse:7.31791\n",
+            "[128]\tvalidation_0-rmse:6.54389\tvalidation_1-rmse:7.31605\n",
+            "[129]\tvalidation_0-rmse:6.54189\tvalidation_1-rmse:7.31335\n",
+            "[130]\tvalidation_0-rmse:6.53976\tvalidation_1-rmse:7.3117\n",
+            "[131]\tvalidation_0-rmse:6.53824\tvalidation_1-rmse:7.31023\n",
+            "[132]\tvalidation_0-rmse:6.53554\tvalidation_1-rmse:7.30815\n",
+            "[133]\tvalidation_0-rmse:6.53407\tvalidation_1-rmse:7.30647\n",
+            "[134]\tvalidation_0-rmse:6.53231\tvalidation_1-rmse:7.30464\n",
+            "[135]\tvalidation_0-rmse:6.53056\tvalidation_1-rmse:7.30373\n",
+            "[136]\tvalidation_0-rmse:6.52889\tvalidation_1-rmse:7.30284\n",
+            "[137]\tvalidation_0-rmse:6.52645\tvalidation_1-rmse:7.30101\n",
+            "[138]\tvalidation_0-rmse:6.52498\tvalidation_1-rmse:7.30055\n",
+            "[139]\tvalidation_0-rmse:6.52272\tvalidation_1-rmse:7.29977\n",
+            "[140]\tvalidation_0-rmse:6.52048\tvalidation_1-rmse:7.29874\n",
+            "[141]\tvalidation_0-rmse:6.51878\tvalidation_1-rmse:7.29775\n",
+            "[142]\tvalidation_0-rmse:6.51698\tvalidation_1-rmse:7.29556\n",
+            "[143]\tvalidation_0-rmse:6.51469\tvalidation_1-rmse:7.29235\n",
+            "[144]\tvalidation_0-rmse:6.51286\tvalidation_1-rmse:7.29001\n",
+            "[145]\tvalidation_0-rmse:6.51038\tvalidation_1-rmse:7.28695\n",
+            "[146]\tvalidation_0-rmse:6.50795\tvalidation_1-rmse:7.28439\n",
+            "[147]\tvalidation_0-rmse:6.50606\tvalidation_1-rmse:7.28327\n",
+            "[148]\tvalidation_0-rmse:6.50457\tvalidation_1-rmse:7.28194\n",
+            "[149]\tvalidation_0-rmse:6.50298\tvalidation_1-rmse:7.28069\n",
+            "[150]\tvalidation_0-rmse:6.50138\tvalidation_1-rmse:7.27936\n",
+            "[151]\tvalidation_0-rmse:6.49906\tvalidation_1-rmse:7.27751\n",
+            "[152]\tvalidation_0-rmse:6.49759\tvalidation_1-rmse:7.27607\n",
+            "[153]\tvalidation_0-rmse:6.49635\tvalidation_1-rmse:7.27464\n",
+            "[154]\tvalidation_0-rmse:6.49279\tvalidation_1-rmse:7.27341\n",
+            "[155]\tvalidation_0-rmse:6.49059\tvalidation_1-rmse:7.27259\n",
+            "[156]\tvalidation_0-rmse:6.48884\tvalidation_1-rmse:7.27044\n",
+            "[157]\tvalidation_0-rmse:6.48717\tvalidation_1-rmse:7.26903\n",
+            "[158]\tvalidation_0-rmse:6.48572\tvalidation_1-rmse:7.26725\n",
+            "[159]\tvalidation_0-rmse:6.484\tvalidation_1-rmse:7.26743\n",
+            "[160]\tvalidation_0-rmse:6.48209\tvalidation_1-rmse:7.26593\n",
+            "[161]\tvalidation_0-rmse:6.47957\tvalidation_1-rmse:7.26578\n",
+            "[162]\tvalidation_0-rmse:6.4777\tvalidation_1-rmse:7.2645\n",
+            "[163]\tvalidation_0-rmse:6.47597\tvalidation_1-rmse:7.26348\n",
+            "[164]\tvalidation_0-rmse:6.47436\tvalidation_1-rmse:7.26252\n",
+            "[165]\tvalidation_0-rmse:6.47284\tvalidation_1-rmse:7.26226\n",
+            "[166]\tvalidation_0-rmse:6.47059\tvalidation_1-rmse:7.26124\n",
+            "[167]\tvalidation_0-rmse:6.46818\tvalidation_1-rmse:7.26032\n",
+            "[168]\tvalidation_0-rmse:6.46657\tvalidation_1-rmse:7.25945\n",
+            "[169]\tvalidation_0-rmse:6.46528\tvalidation_1-rmse:7.25888\n",
+            "[170]\tvalidation_0-rmse:6.46303\tvalidation_1-rmse:7.25743\n",
+            "[171]\tvalidation_0-rmse:6.46096\tvalidation_1-rmse:7.25601\n",
+            "[172]\tvalidation_0-rmse:6.45902\tvalidation_1-rmse:7.25544\n",
+            "[173]\tvalidation_0-rmse:6.45732\tvalidation_1-rmse:7.25448\n",
+            "[174]\tvalidation_0-rmse:6.45526\tvalidation_1-rmse:7.25309\n",
+            "[175]\tvalidation_0-rmse:6.45359\tvalidation_1-rmse:7.25284\n",
+            "[176]\tvalidation_0-rmse:6.45101\tvalidation_1-rmse:7.25224\n",
+            "[177]\tvalidation_0-rmse:6.44991\tvalidation_1-rmse:7.25116\n",
+            "[178]\tvalidation_0-rmse:6.44783\tvalidation_1-rmse:7.25086\n",
+            "[179]\tvalidation_0-rmse:6.44665\tvalidation_1-rmse:7.25022\n",
+            "[180]\tvalidation_0-rmse:6.4448\tvalidation_1-rmse:7.24966\n",
+            "[181]\tvalidation_0-rmse:6.4434\tvalidation_1-rmse:7.24908\n",
+            "[182]\tvalidation_0-rmse:6.44223\tvalidation_1-rmse:7.2484\n",
+            "[183]\tvalidation_0-rmse:6.44089\tvalidation_1-rmse:7.24701\n",
+            "[184]\tvalidation_0-rmse:6.4382\tvalidation_1-rmse:7.24589\n",
+            "[185]\tvalidation_0-rmse:6.43565\tvalidation_1-rmse:7.244\n",
+            "[186]\tvalidation_0-rmse:6.4344\tvalidation_1-rmse:7.24251\n",
+            "[187]\tvalidation_0-rmse:6.43268\tvalidation_1-rmse:7.24126\n",
+            "[188]\tvalidation_0-rmse:6.43136\tvalidation_1-rmse:7.24068\n",
+            "[189]\tvalidation_0-rmse:6.42942\tvalidation_1-rmse:7.23856\n",
+            "[190]\tvalidation_0-rmse:6.42817\tvalidation_1-rmse:7.23852\n",
+            "[191]\tvalidation_0-rmse:6.42691\tvalidation_1-rmse:7.23641\n",
+            "[192]\tvalidation_0-rmse:6.42476\tvalidation_1-rmse:7.23523\n",
+            "[193]\tvalidation_0-rmse:6.42366\tvalidation_1-rmse:7.23388\n",
+            "[194]\tvalidation_0-rmse:6.42229\tvalidation_1-rmse:7.23221\n",
+            "[195]\tvalidation_0-rmse:6.42127\tvalidation_1-rmse:7.23161\n",
+            "[196]\tvalidation_0-rmse:6.41991\tvalidation_1-rmse:7.23033\n",
+            "[197]\tvalidation_0-rmse:6.41877\tvalidation_1-rmse:7.22961\n",
+            "[198]\tvalidation_0-rmse:6.41763\tvalidation_1-rmse:7.22885\n",
+            "[199]\tvalidation_0-rmse:6.41609\tvalidation_1-rmse:7.22731\n",
+            "[200]\tvalidation_0-rmse:6.41484\tvalidation_1-rmse:7.22646\n",
+            "[201]\tvalidation_0-rmse:6.41356\tvalidation_1-rmse:7.22492\n",
+            "[202]\tvalidation_0-rmse:6.41163\tvalidation_1-rmse:7.22352\n",
+            "[203]\tvalidation_0-rmse:6.40997\tvalidation_1-rmse:7.22293\n",
+            "[204]\tvalidation_0-rmse:6.40822\tvalidation_1-rmse:7.22194\n",
+            "[205]\tvalidation_0-rmse:6.40721\tvalidation_1-rmse:7.22132\n",
+            "[206]\tvalidation_0-rmse:6.40611\tvalidation_1-rmse:7.21937\n",
+            "[207]\tvalidation_0-rmse:6.40308\tvalidation_1-rmse:7.21939\n",
+            "[208]\tvalidation_0-rmse:6.40177\tvalidation_1-rmse:7.21897\n",
+            "[209]\tvalidation_0-rmse:6.40022\tvalidation_1-rmse:7.21835\n",
+            "[210]\tvalidation_0-rmse:6.39857\tvalidation_1-rmse:7.21665\n",
+            "[211]\tvalidation_0-rmse:6.39631\tvalidation_1-rmse:7.21599\n",
+            "[212]\tvalidation_0-rmse:6.39531\tvalidation_1-rmse:7.21566\n",
+            "[213]\tvalidation_0-rmse:6.3937\tvalidation_1-rmse:7.21431\n",
+            "[214]\tvalidation_0-rmse:6.39201\tvalidation_1-rmse:7.21282\n",
+            "[215]\tvalidation_0-rmse:6.38985\tvalidation_1-rmse:7.21112\n",
+            "[216]\tvalidation_0-rmse:6.38864\tvalidation_1-rmse:7.21073\n",
+            "[217]\tvalidation_0-rmse:6.38616\tvalidation_1-rmse:7.21015\n",
+            "[218]\tvalidation_0-rmse:6.38496\tvalidation_1-rmse:7.20833\n",
+            "[219]\tvalidation_0-rmse:6.3834\tvalidation_1-rmse:7.20689\n",
+            "[220]\tvalidation_0-rmse:6.38105\tvalidation_1-rmse:7.20501\n",
+            "[221]\tvalidation_0-rmse:6.38003\tvalidation_1-rmse:7.2041\n",
+            "[222]\tvalidation_0-rmse:6.37925\tvalidation_1-rmse:7.20353\n",
+            "[223]\tvalidation_0-rmse:6.3782\tvalidation_1-rmse:7.20324\n",
+            "[224]\tvalidation_0-rmse:6.37706\tvalidation_1-rmse:7.20254\n",
+            "[225]\tvalidation_0-rmse:6.37577\tvalidation_1-rmse:7.20188\n",
+            "[226]\tvalidation_0-rmse:6.37436\tvalidation_1-rmse:7.20103\n",
+            "[227]\tvalidation_0-rmse:6.37313\tvalidation_1-rmse:7.1976\n",
+            "[228]\tvalidation_0-rmse:6.37225\tvalidation_1-rmse:7.19704\n",
+            "[229]\tvalidation_0-rmse:6.3714\tvalidation_1-rmse:7.19649\n",
+            "[230]\tvalidation_0-rmse:6.37026\tvalidation_1-rmse:7.1955\n",
+            "[231]\tvalidation_0-rmse:6.36871\tvalidation_1-rmse:7.19474\n",
+            "[232]\tvalidation_0-rmse:6.36754\tvalidation_1-rmse:7.19413\n",
+            "[233]\tvalidation_0-rmse:6.36566\tvalidation_1-rmse:7.19233\n",
+            "[234]\tvalidation_0-rmse:6.36383\tvalidation_1-rmse:7.19094\n",
+            "[235]\tvalidation_0-rmse:6.36252\tvalidation_1-rmse:7.18898\n",
+            "[236]\tvalidation_0-rmse:6.35964\tvalidation_1-rmse:7.18818\n",
+            "[237]\tvalidation_0-rmse:6.35819\tvalidation_1-rmse:7.18726\n",
+            "[238]\tvalidation_0-rmse:6.35732\tvalidation_1-rmse:7.1868\n",
+            "[239]\tvalidation_0-rmse:6.35633\tvalidation_1-rmse:7.18583\n",
+            "[240]\tvalidation_0-rmse:6.35523\tvalidation_1-rmse:7.18497\n",
+            "[241]\tvalidation_0-rmse:6.35341\tvalidation_1-rmse:7.18521\n",
+            "[242]\tvalidation_0-rmse:6.35247\tvalidation_1-rmse:7.18379\n",
+            "[243]\tvalidation_0-rmse:6.35129\tvalidation_1-rmse:7.18305\n",
+            "[244]\tvalidation_0-rmse:6.3501\tvalidation_1-rmse:7.18168\n",
+            "[245]\tvalidation_0-rmse:6.34946\tvalidation_1-rmse:7.18136\n",
+            "[246]\tvalidation_0-rmse:6.34849\tvalidation_1-rmse:7.18057\n",
+            "[247]\tvalidation_0-rmse:6.34698\tvalidation_1-rmse:7.17997\n",
+            "[248]\tvalidation_0-rmse:6.34453\tvalidation_1-rmse:7.17869\n",
+            "[249]\tvalidation_0-rmse:6.34372\tvalidation_1-rmse:7.17852\n",
+            "[250]\tvalidation_0-rmse:6.34269\tvalidation_1-rmse:7.17693\n",
+            "[251]\tvalidation_0-rmse:6.34134\tvalidation_1-rmse:7.17621\n",
+            "[252]\tvalidation_0-rmse:6.34051\tvalidation_1-rmse:7.17625\n",
+            "[253]\tvalidation_0-rmse:6.33899\tvalidation_1-rmse:7.17513\n",
+            "[254]\tvalidation_0-rmse:6.33775\tvalidation_1-rmse:7.17463\n",
+            "[255]\tvalidation_0-rmse:6.33671\tvalidation_1-rmse:7.17433\n",
+            "[256]\tvalidation_0-rmse:6.33558\tvalidation_1-rmse:7.17341\n",
+            "[257]\tvalidation_0-rmse:6.33295\tvalidation_1-rmse:7.17209\n",
+            "[258]\tvalidation_0-rmse:6.3315\tvalidation_1-rmse:7.17159\n",
+            "[259]\tvalidation_0-rmse:6.33085\tvalidation_1-rmse:7.17078\n",
+            "[260]\tvalidation_0-rmse:6.32998\tvalidation_1-rmse:7.17048\n",
+            "[261]\tvalidation_0-rmse:6.32922\tvalidation_1-rmse:7.17017\n",
+            "[262]\tvalidation_0-rmse:6.32838\tvalidation_1-rmse:7.16867\n",
+            "[263]\tvalidation_0-rmse:6.32666\tvalidation_1-rmse:7.16812\n",
+            "[264]\tvalidation_0-rmse:6.32593\tvalidation_1-rmse:7.16772\n",
+            "[265]\tvalidation_0-rmse:6.32469\tvalidation_1-rmse:7.16653\n",
+            "[266]\tvalidation_0-rmse:6.32368\tvalidation_1-rmse:7.16603\n",
+            "[267]\tvalidation_0-rmse:6.32271\tvalidation_1-rmse:7.16402\n",
+            "[268]\tvalidation_0-rmse:6.32215\tvalidation_1-rmse:7.1644\n",
+            "[269]\tvalidation_0-rmse:6.32101\tvalidation_1-rmse:7.16157\n",
+            "[270]\tvalidation_0-rmse:6.32018\tvalidation_1-rmse:7.16132\n",
+            "[271]\tvalidation_0-rmse:6.31937\tvalidation_1-rmse:7.16092\n",
+            "[272]\tvalidation_0-rmse:6.31797\tvalidation_1-rmse:7.1595\n",
+            "[273]\tvalidation_0-rmse:6.31691\tvalidation_1-rmse:7.15858\n",
+            "[274]\tvalidation_0-rmse:6.31577\tvalidation_1-rmse:7.15747\n",
+            "[275]\tvalidation_0-rmse:6.31487\tvalidation_1-rmse:7.15652\n",
+            "[276]\tvalidation_0-rmse:6.31429\tvalidation_1-rmse:7.15665\n",
+            "[277]\tvalidation_0-rmse:6.31261\tvalidation_1-rmse:7.15644\n",
+            "[278]\tvalidation_0-rmse:6.31109\tvalidation_1-rmse:7.156\n",
+            "[279]\tvalidation_0-rmse:6.30996\tvalidation_1-rmse:7.15484\n",
+            "[280]\tvalidation_0-rmse:6.30895\tvalidation_1-rmse:7.15472\n",
+            "[281]\tvalidation_0-rmse:6.30807\tvalidation_1-rmse:7.1544\n",
+            "[282]\tvalidation_0-rmse:6.30711\tvalidation_1-rmse:7.15436\n",
+            "[283]\tvalidation_0-rmse:6.30619\tvalidation_1-rmse:7.15418\n",
+            "[284]\tvalidation_0-rmse:6.30551\tvalidation_1-rmse:7.15448\n",
+            "[285]\tvalidation_0-rmse:6.30471\tvalidation_1-rmse:7.15358\n",
+            "[286]\tvalidation_0-rmse:6.30374\tvalidation_1-rmse:7.15351\n",
+            "[287]\tvalidation_0-rmse:6.30243\tvalidation_1-rmse:7.15293\n",
+            "[288]\tvalidation_0-rmse:6.30173\tvalidation_1-rmse:7.15212\n",
+            "[289]\tvalidation_0-rmse:6.30133\tvalidation_1-rmse:7.15109\n",
+            "[290]\tvalidation_0-rmse:6.30069\tvalidation_1-rmse:7.15064\n",
+            "[291]\tvalidation_0-rmse:6.30005\tvalidation_1-rmse:7.14975\n",
+            "[292]\tvalidation_0-rmse:6.29892\tvalidation_1-rmse:7.1489\n",
+            "[293]\tvalidation_0-rmse:6.29784\tvalidation_1-rmse:7.14895\n",
+            "[294]\tvalidation_0-rmse:6.2964\tvalidation_1-rmse:7.14711\n",
+            "[295]\tvalidation_0-rmse:6.29575\tvalidation_1-rmse:7.14684\n",
+            "[296]\tvalidation_0-rmse:6.29493\tvalidation_1-rmse:7.14588\n",
+            "[297]\tvalidation_0-rmse:6.29433\tvalidation_1-rmse:7.14555\n",
+            "[298]\tvalidation_0-rmse:6.29325\tvalidation_1-rmse:7.14515\n",
+            "[299]\tvalidation_0-rmse:6.29202\tvalidation_1-rmse:7.14471\n",
+            "[300]\tvalidation_0-rmse:6.29146\tvalidation_1-rmse:7.14426\n",
+            "[301]\tvalidation_0-rmse:6.29002\tvalidation_1-rmse:7.1421\n",
+            "[302]\tvalidation_0-rmse:6.28951\tvalidation_1-rmse:7.14125\n",
+            "[303]\tvalidation_0-rmse:6.28817\tvalidation_1-rmse:7.14086\n",
+            "[304]\tvalidation_0-rmse:6.28683\tvalidation_1-rmse:7.14172\n",
+            "[305]\tvalidation_0-rmse:6.28574\tvalidation_1-rmse:7.14148\n",
+            "[306]\tvalidation_0-rmse:6.28521\tvalidation_1-rmse:7.14145\n",
+            "[307]\tvalidation_0-rmse:6.28369\tvalidation_1-rmse:7.13904\n",
+            "[308]\tvalidation_0-rmse:6.28254\tvalidation_1-rmse:7.13902\n",
+            "[309]\tvalidation_0-rmse:6.28171\tvalidation_1-rmse:7.13889\n",
+            "[310]\tvalidation_0-rmse:6.28089\tvalidation_1-rmse:7.13867\n",
+            "[311]\tvalidation_0-rmse:6.28024\tvalidation_1-rmse:7.13766\n",
+            "[312]\tvalidation_0-rmse:6.27918\tvalidation_1-rmse:7.13663\n",
+            "[313]\tvalidation_0-rmse:6.27838\tvalidation_1-rmse:7.13617\n",
+            "[314]\tvalidation_0-rmse:6.27597\tvalidation_1-rmse:7.13452\n",
+            "[315]\tvalidation_0-rmse:6.27532\tvalidation_1-rmse:7.13364\n",
+            "[316]\tvalidation_0-rmse:6.27363\tvalidation_1-rmse:7.13288\n",
+            "[317]\tvalidation_0-rmse:6.27311\tvalidation_1-rmse:7.13267\n",
+            "[318]\tvalidation_0-rmse:6.27255\tvalidation_1-rmse:7.13165\n",
+            "[319]\tvalidation_0-rmse:6.27168\tvalidation_1-rmse:7.13085\n",
+            "[320]\tvalidation_0-rmse:6.27088\tvalidation_1-rmse:7.13029\n",
+            "[321]\tvalidation_0-rmse:6.27025\tvalidation_1-rmse:7.13001\n",
+            "[322]\tvalidation_0-rmse:6.26926\tvalidation_1-rmse:7.12989\n",
+            "[323]\tvalidation_0-rmse:6.26881\tvalidation_1-rmse:7.12963\n",
+            "[324]\tvalidation_0-rmse:6.26796\tvalidation_1-rmse:7.12917\n",
+            "[325]\tvalidation_0-rmse:6.26665\tvalidation_1-rmse:7.12881\n",
+            "[326]\tvalidation_0-rmse:6.266\tvalidation_1-rmse:7.12838\n",
+            "[327]\tvalidation_0-rmse:6.26517\tvalidation_1-rmse:7.12849\n",
+            "[328]\tvalidation_0-rmse:6.26395\tvalidation_1-rmse:7.12843\n",
+            "[329]\tvalidation_0-rmse:6.26303\tvalidation_1-rmse:7.12746\n",
+            "[330]\tvalidation_0-rmse:6.26199\tvalidation_1-rmse:7.12755\n",
+            "[331]\tvalidation_0-rmse:6.26128\tvalidation_1-rmse:7.12711\n",
+            "[332]\tvalidation_0-rmse:6.26038\tvalidation_1-rmse:7.12669\n",
+            "[333]\tvalidation_0-rmse:6.25939\tvalidation_1-rmse:7.12629\n",
+            "[334]\tvalidation_0-rmse:6.25844\tvalidation_1-rmse:7.12605\n",
+            "[335]\tvalidation_0-rmse:6.25732\tvalidation_1-rmse:7.12613\n",
+            "[336]\tvalidation_0-rmse:6.25573\tvalidation_1-rmse:7.12544\n",
+            "[337]\tvalidation_0-rmse:6.2551\tvalidation_1-rmse:7.12534\n",
+            "[338]\tvalidation_0-rmse:6.25384\tvalidation_1-rmse:7.12514\n",
+            "[339]\tvalidation_0-rmse:6.2524\tvalidation_1-rmse:7.12501\n",
+            "[340]\tvalidation_0-rmse:6.25136\tvalidation_1-rmse:7.12451\n",
+            "[341]\tvalidation_0-rmse:6.25012\tvalidation_1-rmse:7.12408\n",
+            "[342]\tvalidation_0-rmse:6.24855\tvalidation_1-rmse:7.12411\n",
+            "[343]\tvalidation_0-rmse:6.24726\tvalidation_1-rmse:7.12257\n",
+            "[344]\tvalidation_0-rmse:6.24592\tvalidation_1-rmse:7.12192\n",
+            "[345]\tvalidation_0-rmse:6.2452\tvalidation_1-rmse:7.12154\n",
+            "[346]\tvalidation_0-rmse:6.24457\tvalidation_1-rmse:7.12175\n",
+            "[347]\tvalidation_0-rmse:6.24362\tvalidation_1-rmse:7.12122\n",
+            "[348]\tvalidation_0-rmse:6.24298\tvalidation_1-rmse:7.12066\n",
+            "[349]\tvalidation_0-rmse:6.24181\tvalidation_1-rmse:7.12123\n",
+            "[350]\tvalidation_0-rmse:6.24149\tvalidation_1-rmse:7.12099\n",
+            "[351]\tvalidation_0-rmse:6.24088\tvalidation_1-rmse:7.1212\n",
+            "[352]\tvalidation_0-rmse:6.2398\tvalidation_1-rmse:7.12148\n",
+            "[353]\tvalidation_0-rmse:6.23905\tvalidation_1-rmse:7.12174\n",
+            "[354]\tvalidation_0-rmse:6.23837\tvalidation_1-rmse:7.12158\n",
+            "[355]\tvalidation_0-rmse:6.23768\tvalidation_1-rmse:7.12157\n",
+            "[356]\tvalidation_0-rmse:6.23653\tvalidation_1-rmse:7.12092\n",
+            "[357]\tvalidation_0-rmse:6.23601\tvalidation_1-rmse:7.12079\n",
+            "[358]\tvalidation_0-rmse:6.23513\tvalidation_1-rmse:7.12032\n",
+            "[359]\tvalidation_0-rmse:6.23449\tvalidation_1-rmse:7.1206\n",
+            "[360]\tvalidation_0-rmse:6.23372\tvalidation_1-rmse:7.12036\n",
+            "[361]\tvalidation_0-rmse:6.23323\tvalidation_1-rmse:7.1201\n",
+            "[362]\tvalidation_0-rmse:6.23258\tvalidation_1-rmse:7.11931\n",
+            "[363]\tvalidation_0-rmse:6.2321\tvalidation_1-rmse:7.11895\n",
+            "[364]\tvalidation_0-rmse:6.23136\tvalidation_1-rmse:7.11952\n",
+            "[365]\tvalidation_0-rmse:6.23088\tvalidation_1-rmse:7.11919\n",
+            "[366]\tvalidation_0-rmse:6.2306\tvalidation_1-rmse:7.11851\n",
+            "[367]\tvalidation_0-rmse:6.22967\tvalidation_1-rmse:7.11805\n",
+            "[368]\tvalidation_0-rmse:6.22819\tvalidation_1-rmse:7.1152\n",
+            "[369]\tvalidation_0-rmse:6.22659\tvalidation_1-rmse:7.11346\n",
+            "[370]\tvalidation_0-rmse:6.2258\tvalidation_1-rmse:7.11248\n",
+            "[371]\tvalidation_0-rmse:6.22542\tvalidation_1-rmse:7.1126\n",
+            "[372]\tvalidation_0-rmse:6.22449\tvalidation_1-rmse:7.11382\n",
+            "[373]\tvalidation_0-rmse:6.22397\tvalidation_1-rmse:7.11355\n",
+            "[374]\tvalidation_0-rmse:6.22338\tvalidation_1-rmse:7.11313\n",
+            "[375]\tvalidation_0-rmse:6.22273\tvalidation_1-rmse:7.11237\n",
+            "[376]\tvalidation_0-rmse:6.22199\tvalidation_1-rmse:7.11188\n",
+            "[377]\tvalidation_0-rmse:6.22167\tvalidation_1-rmse:7.1118\n",
+            "[378]\tvalidation_0-rmse:6.22092\tvalidation_1-rmse:7.1108\n",
+            "[379]\tvalidation_0-rmse:6.22047\tvalidation_1-rmse:7.11074\n",
+            "[380]\tvalidation_0-rmse:6.22023\tvalidation_1-rmse:7.11108\n",
+            "[381]\tvalidation_0-rmse:6.21984\tvalidation_1-rmse:7.11142\n",
+            "[382]\tvalidation_0-rmse:6.21878\tvalidation_1-rmse:7.11189\n",
+            "[383]\tvalidation_0-rmse:6.21777\tvalidation_1-rmse:7.1113\n",
+            "[384]\tvalidation_0-rmse:6.21668\tvalidation_1-rmse:7.11025\n",
+            "[385]\tvalidation_0-rmse:6.2155\tvalidation_1-rmse:7.10875\n",
+            "[386]\tvalidation_0-rmse:6.21491\tvalidation_1-rmse:7.1086\n",
+            "[387]\tvalidation_0-rmse:6.21402\tvalidation_1-rmse:7.10725\n",
+            "[388]\tvalidation_0-rmse:6.21309\tvalidation_1-rmse:7.10687\n",
+            "[389]\tvalidation_0-rmse:6.21167\tvalidation_1-rmse:7.10766\n",
+            "[390]\tvalidation_0-rmse:6.21045\tvalidation_1-rmse:7.10667\n",
+            "[391]\tvalidation_0-rmse:6.20933\tvalidation_1-rmse:7.10671\n",
+            "[392]\tvalidation_0-rmse:6.20888\tvalidation_1-rmse:7.10614\n",
+            "[393]\tvalidation_0-rmse:6.20821\tvalidation_1-rmse:7.10532\n",
+            "[394]\tvalidation_0-rmse:6.20713\tvalidation_1-rmse:7.10572\n",
+            "[395]\tvalidation_0-rmse:6.20649\tvalidation_1-rmse:7.10531\n",
+            "[396]\tvalidation_0-rmse:6.20564\tvalidation_1-rmse:7.10442\n",
+            "[397]\tvalidation_0-rmse:6.20501\tvalidation_1-rmse:7.10448\n",
+            "[398]\tvalidation_0-rmse:6.20421\tvalidation_1-rmse:7.10507\n",
+            "[399]\tvalidation_0-rmse:6.20371\tvalidation_1-rmse:7.10442\n",
+            "[400]\tvalidation_0-rmse:6.20305\tvalidation_1-rmse:7.10393\n",
+            "[401]\tvalidation_0-rmse:6.20225\tvalidation_1-rmse:7.10426\n",
+            "[402]\tvalidation_0-rmse:6.2014\tvalidation_1-rmse:7.10404\n",
+            "[403]\tvalidation_0-rmse:6.20068\tvalidation_1-rmse:7.10374\n",
+            "[404]\tvalidation_0-rmse:6.2001\tvalidation_1-rmse:7.10407\n",
+            "[405]\tvalidation_0-rmse:6.19946\tvalidation_1-rmse:7.10346\n",
+            "[406]\tvalidation_0-rmse:6.19823\tvalidation_1-rmse:7.10345\n",
+            "[407]\tvalidation_0-rmse:6.19723\tvalidation_1-rmse:7.10303\n",
+            "[408]\tvalidation_0-rmse:6.19606\tvalidation_1-rmse:7.10282\n",
+            "[409]\tvalidation_0-rmse:6.19548\tvalidation_1-rmse:7.10224\n",
+            "[410]\tvalidation_0-rmse:6.19426\tvalidation_1-rmse:7.10369\n",
+            "[411]\tvalidation_0-rmse:6.19354\tvalidation_1-rmse:7.10362\n",
+            "[412]\tvalidation_0-rmse:6.19268\tvalidation_1-rmse:7.10298\n",
+            "[413]\tvalidation_0-rmse:6.19188\tvalidation_1-rmse:7.10262\n",
+            "[414]\tvalidation_0-rmse:6.19089\tvalidation_1-rmse:7.10244\n",
+            "[415]\tvalidation_0-rmse:6.18964\tvalidation_1-rmse:7.1014\n",
+            "[416]\tvalidation_0-rmse:6.1893\tvalidation_1-rmse:7.10143\n",
+            "[417]\tvalidation_0-rmse:6.18849\tvalidation_1-rmse:7.10128\n",
+            "[418]\tvalidation_0-rmse:6.18838\tvalidation_1-rmse:7.10128\n",
+            "[419]\tvalidation_0-rmse:6.18796\tvalidation_1-rmse:7.10108\n",
+            "[420]\tvalidation_0-rmse:6.18687\tvalidation_1-rmse:7.10035\n",
+            "[421]\tvalidation_0-rmse:6.18618\tvalidation_1-rmse:7.10081\n",
+            "[422]\tvalidation_0-rmse:6.18554\tvalidation_1-rmse:7.10077\n",
+            "[423]\tvalidation_0-rmse:6.18478\tvalidation_1-rmse:7.10092\n",
+            "[424]\tvalidation_0-rmse:6.18354\tvalidation_1-rmse:7.10112\n",
+            "[425]\tvalidation_0-rmse:6.18322\tvalidation_1-rmse:7.10093\n",
+            "[426]\tvalidation_0-rmse:6.18302\tvalidation_1-rmse:7.10077\n",
+            "[427]\tvalidation_0-rmse:6.18215\tvalidation_1-rmse:7.10086\n",
+            "[428]\tvalidation_0-rmse:6.18128\tvalidation_1-rmse:7.10037\n",
+            "[429]\tvalidation_0-rmse:6.18042\tvalidation_1-rmse:7.10056\n",
+            "[430]\tvalidation_0-rmse:6.17941\tvalidation_1-rmse:7.10078\n",
+            "[431]\tvalidation_0-rmse:6.17848\tvalidation_1-rmse:7.10109\n",
+            "[432]\tvalidation_0-rmse:6.178\tvalidation_1-rmse:7.10046\n",
+            "[433]\tvalidation_0-rmse:6.17769\tvalidation_1-rmse:7.1002\n",
+            "[434]\tvalidation_0-rmse:6.17728\tvalidation_1-rmse:7.09988\n",
+            "[435]\tvalidation_0-rmse:6.17657\tvalidation_1-rmse:7.10028\n",
+            "[436]\tvalidation_0-rmse:6.17579\tvalidation_1-rmse:7.09975\n",
+            "[437]\tvalidation_0-rmse:6.17523\tvalidation_1-rmse:7.09801\n",
+            "[438]\tvalidation_0-rmse:6.17477\tvalidation_1-rmse:7.09789\n",
+            "[439]\tvalidation_0-rmse:6.17422\tvalidation_1-rmse:7.09846\n",
+            "[440]\tvalidation_0-rmse:6.17389\tvalidation_1-rmse:7.09755\n",
+            "[441]\tvalidation_0-rmse:6.17355\tvalidation_1-rmse:7.09768\n",
+            "[442]\tvalidation_0-rmse:6.17302\tvalidation_1-rmse:7.09734\n",
+            "[443]\tvalidation_0-rmse:6.17243\tvalidation_1-rmse:7.09676\n",
+            "[444]\tvalidation_0-rmse:6.17196\tvalidation_1-rmse:7.09675\n",
+            "[445]\tvalidation_0-rmse:6.17143\tvalidation_1-rmse:7.09584\n",
+            "[446]\tvalidation_0-rmse:6.17057\tvalidation_1-rmse:7.09448\n",
+            "[447]\tvalidation_0-rmse:6.17004\tvalidation_1-rmse:7.09459\n",
+            "[448]\tvalidation_0-rmse:6.16929\tvalidation_1-rmse:7.09425\n",
+            "[449]\tvalidation_0-rmse:6.16859\tvalidation_1-rmse:7.09391\n",
+            "[450]\tvalidation_0-rmse:6.16805\tvalidation_1-rmse:7.09411\n",
+            "[451]\tvalidation_0-rmse:6.16761\tvalidation_1-rmse:7.09347\n",
+            "[452]\tvalidation_0-rmse:6.16683\tvalidation_1-rmse:7.09342\n",
+            "[453]\tvalidation_0-rmse:6.16598\tvalidation_1-rmse:7.09259\n",
+            "[454]\tvalidation_0-rmse:6.16557\tvalidation_1-rmse:7.09346\n",
+            "[455]\tvalidation_0-rmse:6.16468\tvalidation_1-rmse:7.0946\n",
+            "[456]\tvalidation_0-rmse:6.16335\tvalidation_1-rmse:7.09311\n",
+            "[457]\tvalidation_0-rmse:6.16284\tvalidation_1-rmse:7.09289\n",
+            "[458]\tvalidation_0-rmse:6.16193\tvalidation_1-rmse:7.09312\n",
+            "[459]\tvalidation_0-rmse:6.16134\tvalidation_1-rmse:7.09354\n",
+            "[460]\tvalidation_0-rmse:6.16003\tvalidation_1-rmse:7.09347\n",
+            "[461]\tvalidation_0-rmse:6.15931\tvalidation_1-rmse:7.09297\n",
+            "[462]\tvalidation_0-rmse:6.15902\tvalidation_1-rmse:7.09306\n",
+            "[463]\tvalidation_0-rmse:6.15849\tvalidation_1-rmse:7.09255\n",
+            "[464]\tvalidation_0-rmse:6.1577\tvalidation_1-rmse:7.09233\n",
+            "[465]\tvalidation_0-rmse:6.1571\tvalidation_1-rmse:7.0927\n",
+            "[466]\tvalidation_0-rmse:6.15668\tvalidation_1-rmse:7.09232\n",
+            "[467]\tvalidation_0-rmse:6.15623\tvalidation_1-rmse:7.09224\n",
+            "[468]\tvalidation_0-rmse:6.15559\tvalidation_1-rmse:7.09255\n",
+            "[469]\tvalidation_0-rmse:6.15528\tvalidation_1-rmse:7.09174\n",
+            "[470]\tvalidation_0-rmse:6.15432\tvalidation_1-rmse:7.09082\n",
+            "[471]\tvalidation_0-rmse:6.15395\tvalidation_1-rmse:7.09061\n",
+            "[472]\tvalidation_0-rmse:6.15359\tvalidation_1-rmse:7.09064\n",
+            "[473]\tvalidation_0-rmse:6.15293\tvalidation_1-rmse:7.0906\n",
+            "[474]\tvalidation_0-rmse:6.15217\tvalidation_1-rmse:7.09039\n",
+            "[475]\tvalidation_0-rmse:6.15112\tvalidation_1-rmse:7.09\n",
+            "[476]\tvalidation_0-rmse:6.15083\tvalidation_1-rmse:7.08983\n",
+            "[477]\tvalidation_0-rmse:6.15055\tvalidation_1-rmse:7.08997\n",
+            "[478]\tvalidation_0-rmse:6.15045\tvalidation_1-rmse:7.08982\n",
+            "[479]\tvalidation_0-rmse:6.14932\tvalidation_1-rmse:7.08989\n",
+            "[480]\tvalidation_0-rmse:6.14895\tvalidation_1-rmse:7.08987\n",
+            "[481]\tvalidation_0-rmse:6.14825\tvalidation_1-rmse:7.08866\n",
+            "[482]\tvalidation_0-rmse:6.14706\tvalidation_1-rmse:7.08907\n",
+            "[483]\tvalidation_0-rmse:6.1463\tvalidation_1-rmse:7.08885\n",
+            "[484]\tvalidation_0-rmse:6.14526\tvalidation_1-rmse:7.08875\n",
+            "[485]\tvalidation_0-rmse:6.14459\tvalidation_1-rmse:7.08962\n",
+            "[486]\tvalidation_0-rmse:6.14419\tvalidation_1-rmse:7.08956\n",
+            "[487]\tvalidation_0-rmse:6.14287\tvalidation_1-rmse:7.08883\n",
+            "[488]\tvalidation_0-rmse:6.14171\tvalidation_1-rmse:7.08917\n",
+            "[489]\tvalidation_0-rmse:6.14135\tvalidation_1-rmse:7.08913\n",
+            "[490]\tvalidation_0-rmse:6.14072\tvalidation_1-rmse:7.09033\n",
+            "[491]\tvalidation_0-rmse:6.13937\tvalidation_1-rmse:7.09167\n",
+            "[492]\tvalidation_0-rmse:6.13876\tvalidation_1-rmse:7.0919\n",
+            "[493]\tvalidation_0-rmse:6.13805\tvalidation_1-rmse:7.09236\n",
+            "[494]\tvalidation_0-rmse:6.13749\tvalidation_1-rmse:7.09201\n",
+            "[495]\tvalidation_0-rmse:6.13708\tvalidation_1-rmse:7.09202\n",
+            "[496]\tvalidation_0-rmse:6.13674\tvalidation_1-rmse:7.09196\n",
+            "[497]\tvalidation_0-rmse:6.13467\tvalidation_1-rmse:7.09145\n",
+            "[498]\tvalidation_0-rmse:6.13436\tvalidation_1-rmse:7.09084\n",
+            "[499]\tvalidation_0-rmse:6.13396\tvalidation_1-rmse:7.0905\n",
+            "[500]\tvalidation_0-rmse:6.13307\tvalidation_1-rmse:7.09107\n",
+            "[501]\tvalidation_0-rmse:6.13283\tvalidation_1-rmse:7.09129\n",
+            "[502]\tvalidation_0-rmse:6.13224\tvalidation_1-rmse:7.09055\n",
+            "[503]\tvalidation_0-rmse:6.13131\tvalidation_1-rmse:7.08985\n",
+            "[504]\tvalidation_0-rmse:6.13065\tvalidation_1-rmse:7.09038\n",
+            "[505]\tvalidation_0-rmse:6.13012\tvalidation_1-rmse:7.08998\n",
+            "[506]\tvalidation_0-rmse:6.12988\tvalidation_1-rmse:7.08996\n",
+            "[507]\tvalidation_0-rmse:6.12981\tvalidation_1-rmse:7.08971\n",
+            "[508]\tvalidation_0-rmse:6.12918\tvalidation_1-rmse:7.08969\n",
+            "[509]\tvalidation_0-rmse:6.12843\tvalidation_1-rmse:7.08941\n",
+            "[510]\tvalidation_0-rmse:6.12786\tvalidation_1-rmse:7.09019\n",
+            "[511]\tvalidation_0-rmse:6.12743\tvalidation_1-rmse:7.08955\n",
+            "[512]\tvalidation_0-rmse:6.12698\tvalidation_1-rmse:7.08992\n",
+            "[513]\tvalidation_0-rmse:6.12595\tvalidation_1-rmse:7.09075\n",
+            "[514]\tvalidation_0-rmse:6.12487\tvalidation_1-rmse:7.09032\n",
+            "[515]\tvalidation_0-rmse:6.12439\tvalidation_1-rmse:7.09047\n",
+            "[516]\tvalidation_0-rmse:6.12409\tvalidation_1-rmse:7.08966\n",
+            "[517]\tvalidation_0-rmse:6.12322\tvalidation_1-rmse:7.08995\n",
+            "[518]\tvalidation_0-rmse:6.123\tvalidation_1-rmse:7.08937\n",
+            "[519]\tvalidation_0-rmse:6.12269\tvalidation_1-rmse:7.08898\n",
+            "[520]\tvalidation_0-rmse:6.1221\tvalidation_1-rmse:7.0883\n",
+            "[521]\tvalidation_0-rmse:6.12146\tvalidation_1-rmse:7.08824\n",
+            "[522]\tvalidation_0-rmse:6.12091\tvalidation_1-rmse:7.08759\n",
+            "[523]\tvalidation_0-rmse:6.12056\tvalidation_1-rmse:7.08817\n",
+            "[524]\tvalidation_0-rmse:6.12007\tvalidation_1-rmse:7.08737\n",
+            "[525]\tvalidation_0-rmse:6.11889\tvalidation_1-rmse:7.08788\n",
+            "[526]\tvalidation_0-rmse:6.11802\tvalidation_1-rmse:7.0869\n",
+            "[527]\tvalidation_0-rmse:6.11712\tvalidation_1-rmse:7.08758\n",
+            "[528]\tvalidation_0-rmse:6.11659\tvalidation_1-rmse:7.08768\n",
+            "[529]\tvalidation_0-rmse:6.11624\tvalidation_1-rmse:7.08742\n",
+            "[530]\tvalidation_0-rmse:6.1156\tvalidation_1-rmse:7.08682\n",
+            "[531]\tvalidation_0-rmse:6.11517\tvalidation_1-rmse:7.0876\n",
+            "[532]\tvalidation_0-rmse:6.11437\tvalidation_1-rmse:7.08715\n",
+            "[533]\tvalidation_0-rmse:6.11389\tvalidation_1-rmse:7.08666\n",
+            "[534]\tvalidation_0-rmse:6.11295\tvalidation_1-rmse:7.08708\n",
+            "[535]\tvalidation_0-rmse:6.11296\tvalidation_1-rmse:7.08686\n",
+            "[536]\tvalidation_0-rmse:6.11208\tvalidation_1-rmse:7.08734\n",
+            "[537]\tvalidation_0-rmse:6.11179\tvalidation_1-rmse:7.08639\n",
+            "[538]\tvalidation_0-rmse:6.1112\tvalidation_1-rmse:7.08718\n",
+            "[539]\tvalidation_0-rmse:6.1109\tvalidation_1-rmse:7.08662\n",
+            "[540]\tvalidation_0-rmse:6.11047\tvalidation_1-rmse:7.0868\n",
+            "[541]\tvalidation_0-rmse:6.10998\tvalidation_1-rmse:7.08683\n",
+            "[542]\tvalidation_0-rmse:6.10887\tvalidation_1-rmse:7.08702\n",
+            "[543]\tvalidation_0-rmse:6.10832\tvalidation_1-rmse:7.08682\n",
+            "[544]\tvalidation_0-rmse:6.1075\tvalidation_1-rmse:7.08652\n",
+            "[545]\tvalidation_0-rmse:6.10676\tvalidation_1-rmse:7.08711\n",
+            "[546]\tvalidation_0-rmse:6.1058\tvalidation_1-rmse:7.08834\n",
+            "[547]\tvalidation_0-rmse:6.1051\tvalidation_1-rmse:7.08821\n",
+            "[548]\tvalidation_0-rmse:6.10478\tvalidation_1-rmse:7.08818\n",
+            "[549]\tvalidation_0-rmse:6.1041\tvalidation_1-rmse:7.08774\n",
+            "[550]\tvalidation_0-rmse:6.10363\tvalidation_1-rmse:7.08744\n",
+            "[551]\tvalidation_0-rmse:6.10189\tvalidation_1-rmse:7.08768\n",
+            "[552]\tvalidation_0-rmse:6.10164\tvalidation_1-rmse:7.08716\n",
+            "[553]\tvalidation_0-rmse:6.10085\tvalidation_1-rmse:7.08616\n",
+            "[554]\tvalidation_0-rmse:6.10018\tvalidation_1-rmse:7.08632\n",
+            "[555]\tvalidation_0-rmse:6.09965\tvalidation_1-rmse:7.08574\n",
+            "[556]\tvalidation_0-rmse:6.09935\tvalidation_1-rmse:7.08563\n",
+            "[557]\tvalidation_0-rmse:6.09889\tvalidation_1-rmse:7.08559\n",
+            "[558]\tvalidation_0-rmse:6.09867\tvalidation_1-rmse:7.08503\n",
+            "[559]\tvalidation_0-rmse:6.09787\tvalidation_1-rmse:7.08385\n",
+            "[560]\tvalidation_0-rmse:6.09738\tvalidation_1-rmse:7.0834\n",
+            "[561]\tvalidation_0-rmse:6.096\tvalidation_1-rmse:7.08228\n",
+            "[562]\tvalidation_0-rmse:6.09481\tvalidation_1-rmse:7.08161\n",
+            "[563]\tvalidation_0-rmse:6.09461\tvalidation_1-rmse:7.0812\n",
+            "[564]\tvalidation_0-rmse:6.0941\tvalidation_1-rmse:7.08125\n",
+            "[565]\tvalidation_0-rmse:6.09363\tvalidation_1-rmse:7.08169\n",
+            "[566]\tvalidation_0-rmse:6.09298\tvalidation_1-rmse:7.08129\n",
+            "[567]\tvalidation_0-rmse:6.09256\tvalidation_1-rmse:7.08104\n",
+            "[568]\tvalidation_0-rmse:6.09206\tvalidation_1-rmse:7.08065\n",
+            "[569]\tvalidation_0-rmse:6.09175\tvalidation_1-rmse:7.08041\n",
+            "[570]\tvalidation_0-rmse:6.09095\tvalidation_1-rmse:7.07989\n",
+            "[571]\tvalidation_0-rmse:6.09051\tvalidation_1-rmse:7.0793\n",
+            "[572]\tvalidation_0-rmse:6.08999\tvalidation_1-rmse:7.07873\n",
+            "[573]\tvalidation_0-rmse:6.0893\tvalidation_1-rmse:7.07959\n",
+            "[574]\tvalidation_0-rmse:6.08886\tvalidation_1-rmse:7.07915\n",
+            "[575]\tvalidation_0-rmse:6.08858\tvalidation_1-rmse:7.07893\n",
+            "[576]\tvalidation_0-rmse:6.08794\tvalidation_1-rmse:7.07917\n",
+            "[577]\tvalidation_0-rmse:6.08633\tvalidation_1-rmse:7.07853\n",
+            "[578]\tvalidation_0-rmse:6.08571\tvalidation_1-rmse:7.07758\n",
+            "[579]\tvalidation_0-rmse:6.08558\tvalidation_1-rmse:7.07831\n",
+            "[580]\tvalidation_0-rmse:6.08473\tvalidation_1-rmse:7.07862\n",
+            "[581]\tvalidation_0-rmse:6.08362\tvalidation_1-rmse:7.07837\n",
+            "[582]\tvalidation_0-rmse:6.08268\tvalidation_1-rmse:7.07906\n",
+            "[583]\tvalidation_0-rmse:6.08264\tvalidation_1-rmse:7.07813\n",
+            "[584]\tvalidation_0-rmse:6.08213\tvalidation_1-rmse:7.07904\n",
+            "[585]\tvalidation_0-rmse:6.08192\tvalidation_1-rmse:7.07892\n",
+            "[586]\tvalidation_0-rmse:6.08159\tvalidation_1-rmse:7.07864\n",
+            "[587]\tvalidation_0-rmse:6.08111\tvalidation_1-rmse:7.07805\n",
+            "[588]\tvalidation_0-rmse:6.0807\tvalidation_1-rmse:7.07882\n",
+            "[589]\tvalidation_0-rmse:6.08013\tvalidation_1-rmse:7.07909\n",
+            "[590]\tvalidation_0-rmse:6.07937\tvalidation_1-rmse:7.07871\n",
+            "[591]\tvalidation_0-rmse:6.07893\tvalidation_1-rmse:7.07847\n",
+            "[592]\tvalidation_0-rmse:6.07819\tvalidation_1-rmse:7.07797\n",
+            "[593]\tvalidation_0-rmse:6.07788\tvalidation_1-rmse:7.07864\n",
+            "[594]\tvalidation_0-rmse:6.07721\tvalidation_1-rmse:7.07886\n",
+            "[595]\tvalidation_0-rmse:6.07652\tvalidation_1-rmse:7.07831\n",
+            "[596]\tvalidation_0-rmse:6.07614\tvalidation_1-rmse:7.07834\n",
+            "[597]\tvalidation_0-rmse:6.07464\tvalidation_1-rmse:7.07685\n",
+            "[598]\tvalidation_0-rmse:6.07436\tvalidation_1-rmse:7.07646\n",
+            "[599]\tvalidation_0-rmse:6.07397\tvalidation_1-rmse:7.07637\n",
+            "[600]\tvalidation_0-rmse:6.07309\tvalidation_1-rmse:7.07671\n",
+            "[601]\tvalidation_0-rmse:6.07284\tvalidation_1-rmse:7.07652\n",
+            "[602]\tvalidation_0-rmse:6.07238\tvalidation_1-rmse:7.07692\n",
+            "[603]\tvalidation_0-rmse:6.07206\tvalidation_1-rmse:7.07716\n",
+            "[604]\tvalidation_0-rmse:6.07151\tvalidation_1-rmse:7.07692\n",
+            "[605]\tvalidation_0-rmse:6.0713\tvalidation_1-rmse:7.07701\n",
+            "[606]\tvalidation_0-rmse:6.07056\tvalidation_1-rmse:7.07708\n",
+            "[607]\tvalidation_0-rmse:6.06996\tvalidation_1-rmse:7.07745\n",
+            "[608]\tvalidation_0-rmse:6.06946\tvalidation_1-rmse:7.07753\n",
+            "[609]\tvalidation_0-rmse:6.06811\tvalidation_1-rmse:7.07786\n",
+            "[610]\tvalidation_0-rmse:6.06772\tvalidation_1-rmse:7.07891\n",
+            "[611]\tvalidation_0-rmse:6.06739\tvalidation_1-rmse:7.0786\n",
+            "[612]\tvalidation_0-rmse:6.06654\tvalidation_1-rmse:7.07961\n",
+            "[613]\tvalidation_0-rmse:6.0663\tvalidation_1-rmse:7.07941\n",
+            "[614]\tvalidation_0-rmse:6.0651\tvalidation_1-rmse:7.07918\n",
+            "[615]\tvalidation_0-rmse:6.06431\tvalidation_1-rmse:7.07858\n",
+            "[616]\tvalidation_0-rmse:6.0638\tvalidation_1-rmse:7.07813\n",
+            "[617]\tvalidation_0-rmse:6.06338\tvalidation_1-rmse:7.07759\n",
+            "[618]\tvalidation_0-rmse:6.0632\tvalidation_1-rmse:7.07731\n",
+            "[619]\tvalidation_0-rmse:6.06219\tvalidation_1-rmse:7.07841\n",
+            "[620]\tvalidation_0-rmse:6.06169\tvalidation_1-rmse:7.07902\n",
+            "[621]\tvalidation_0-rmse:6.06057\tvalidation_1-rmse:7.07954\n",
+            "[622]\tvalidation_0-rmse:6.06004\tvalidation_1-rmse:7.07967\n",
+            "[623]\tvalidation_0-rmse:6.05931\tvalidation_1-rmse:7.07986\n",
+            "[624]\tvalidation_0-rmse:6.05887\tvalidation_1-rmse:7.07988\n",
+            "[625]\tvalidation_0-rmse:6.05836\tvalidation_1-rmse:7.08016\n",
+            "[626]\tvalidation_0-rmse:6.05725\tvalidation_1-rmse:7.08071\n",
+            "[627]\tvalidation_0-rmse:6.05616\tvalidation_1-rmse:7.0804\n",
+            "[628]\tvalidation_0-rmse:6.05559\tvalidation_1-rmse:7.08047\n",
+            "[629]\tvalidation_0-rmse:6.05544\tvalidation_1-rmse:7.08065\n",
+            "[630]\tvalidation_0-rmse:6.05518\tvalidation_1-rmse:7.08081\n",
+            "[631]\tvalidation_0-rmse:6.05488\tvalidation_1-rmse:7.08041\n",
+            "[632]\tvalidation_0-rmse:6.05433\tvalidation_1-rmse:7.08066\n",
+            "[633]\tvalidation_0-rmse:6.0534\tvalidation_1-rmse:7.08042\n",
+            "[634]\tvalidation_0-rmse:6.05268\tvalidation_1-rmse:7.08024\n",
+            "[635]\tvalidation_0-rmse:6.05229\tvalidation_1-rmse:7.08019\n",
+            "[636]\tvalidation_0-rmse:6.05183\tvalidation_1-rmse:7.08043\n",
+            "[637]\tvalidation_0-rmse:6.05145\tvalidation_1-rmse:7.08073\n",
+            "[638]\tvalidation_0-rmse:6.05075\tvalidation_1-rmse:7.08059\n",
+            "[639]\tvalidation_0-rmse:6.05001\tvalidation_1-rmse:7.07903\n",
+            "[640]\tvalidation_0-rmse:6.04951\tvalidation_1-rmse:7.0786\n",
+            "[641]\tvalidation_0-rmse:6.04902\tvalidation_1-rmse:7.07865\n",
+            "[642]\tvalidation_0-rmse:6.04819\tvalidation_1-rmse:7.07863\n",
+            "[643]\tvalidation_0-rmse:6.04805\tvalidation_1-rmse:7.07907\n",
+            "[644]\tvalidation_0-rmse:6.0478\tvalidation_1-rmse:7.07873\n",
+            "[645]\tvalidation_0-rmse:6.04721\tvalidation_1-rmse:7.07945\n",
+            "[646]\tvalidation_0-rmse:6.0469\tvalidation_1-rmse:7.07924\n",
+            "[647]\tvalidation_0-rmse:6.0465\tvalidation_1-rmse:7.07849\n",
+            "[648]\tvalidation_0-rmse:6.04597\tvalidation_1-rmse:7.07905\n",
+            "[649]\tvalidation_0-rmse:6.04565\tvalidation_1-rmse:7.07886\n",
+            "[650]\tvalidation_0-rmse:6.04515\tvalidation_1-rmse:7.07823\n",
+            "[651]\tvalidation_0-rmse:6.0446\tvalidation_1-rmse:7.07882\n",
+            "[652]\tvalidation_0-rmse:6.04443\tvalidation_1-rmse:7.07847\n",
+            "[653]\tvalidation_0-rmse:6.04349\tvalidation_1-rmse:7.07787\n",
+            "[654]\tvalidation_0-rmse:6.04294\tvalidation_1-rmse:7.07835\n",
+            "[655]\tvalidation_0-rmse:6.04278\tvalidation_1-rmse:7.07835\n",
+            "[656]\tvalidation_0-rmse:6.04239\tvalidation_1-rmse:7.07867\n",
+            "[657]\tvalidation_0-rmse:6.04148\tvalidation_1-rmse:7.07802\n",
+            "[658]\tvalidation_0-rmse:6.04059\tvalidation_1-rmse:7.07803\n",
+            "[659]\tvalidation_0-rmse:6.04026\tvalidation_1-rmse:7.07772\n",
+            "[660]\tvalidation_0-rmse:6.04\tvalidation_1-rmse:7.0777\n",
+            "[661]\tvalidation_0-rmse:6.03983\tvalidation_1-rmse:7.07747\n",
+            "[662]\tvalidation_0-rmse:6.03891\tvalidation_1-rmse:7.07595\n",
+            "[663]\tvalidation_0-rmse:6.03854\tvalidation_1-rmse:7.07556\n",
+            "[664]\tvalidation_0-rmse:6.03772\tvalidation_1-rmse:7.07605\n",
+            "[665]\tvalidation_0-rmse:6.03733\tvalidation_1-rmse:7.07564\n",
+            "[666]\tvalidation_0-rmse:6.03655\tvalidation_1-rmse:7.07642\n",
+            "[667]\tvalidation_0-rmse:6.03611\tvalidation_1-rmse:7.07597\n",
+            "[668]\tvalidation_0-rmse:6.03571\tvalidation_1-rmse:7.0759\n",
+            "[669]\tvalidation_0-rmse:6.03454\tvalidation_1-rmse:7.0747\n",
+            "[670]\tvalidation_0-rmse:6.03418\tvalidation_1-rmse:7.07497\n",
+            "[671]\tvalidation_0-rmse:6.03358\tvalidation_1-rmse:7.07504\n",
+            "[672]\tvalidation_0-rmse:6.03303\tvalidation_1-rmse:7.0739\n",
+            "[673]\tvalidation_0-rmse:6.03252\tvalidation_1-rmse:7.07393\n",
+            "[674]\tvalidation_0-rmse:6.03143\tvalidation_1-rmse:7.0747\n",
+            "[675]\tvalidation_0-rmse:6.03133\tvalidation_1-rmse:7.07522\n",
+            "[676]\tvalidation_0-rmse:6.03057\tvalidation_1-rmse:7.07478\n",
+            "[677]\tvalidation_0-rmse:6.0298\tvalidation_1-rmse:7.0744\n",
+            "[678]\tvalidation_0-rmse:6.0294\tvalidation_1-rmse:7.07462\n",
+            "[679]\tvalidation_0-rmse:6.02926\tvalidation_1-rmse:7.07479\n",
+            "[680]\tvalidation_0-rmse:6.0289\tvalidation_1-rmse:7.07498\n",
+            "[681]\tvalidation_0-rmse:6.02818\tvalidation_1-rmse:7.07365\n",
+            "[682]\tvalidation_0-rmse:6.02783\tvalidation_1-rmse:7.07356\n",
+            "[683]\tvalidation_0-rmse:6.0273\tvalidation_1-rmse:7.07352\n",
+            "[684]\tvalidation_0-rmse:6.02649\tvalidation_1-rmse:7.07296\n",
+            "[685]\tvalidation_0-rmse:6.02585\tvalidation_1-rmse:7.07304\n",
+            "[686]\tvalidation_0-rmse:6.02572\tvalidation_1-rmse:7.07314\n",
+            "[687]\tvalidation_0-rmse:6.0252\tvalidation_1-rmse:7.07343\n",
+            "[688]\tvalidation_0-rmse:6.02468\tvalidation_1-rmse:7.07338\n",
+            "[689]\tvalidation_0-rmse:6.02442\tvalidation_1-rmse:7.07327\n",
+            "[690]\tvalidation_0-rmse:6.02351\tvalidation_1-rmse:7.07215\n",
+            "[691]\tvalidation_0-rmse:6.0232\tvalidation_1-rmse:7.07249\n",
+            "[692]\tvalidation_0-rmse:6.0221\tvalidation_1-rmse:7.07188\n",
+            "[693]\tvalidation_0-rmse:6.0215\tvalidation_1-rmse:7.07091\n",
+            "[694]\tvalidation_0-rmse:6.0213\tvalidation_1-rmse:7.07044\n",
+            "[695]\tvalidation_0-rmse:6.02027\tvalidation_1-rmse:7.06995\n",
+            "[696]\tvalidation_0-rmse:6.01989\tvalidation_1-rmse:7.06958\n",
+            "[697]\tvalidation_0-rmse:6.01953\tvalidation_1-rmse:7.06946\n",
+            "[698]\tvalidation_0-rmse:6.01895\tvalidation_1-rmse:7.06888\n",
+            "[699]\tvalidation_0-rmse:6.01889\tvalidation_1-rmse:7.06852\n",
+            "[700]\tvalidation_0-rmse:6.01844\tvalidation_1-rmse:7.06839\n",
+            "[701]\tvalidation_0-rmse:6.01742\tvalidation_1-rmse:7.06832\n",
+            "[702]\tvalidation_0-rmse:6.01676\tvalidation_1-rmse:7.06806\n",
+            "[703]\tvalidation_0-rmse:6.01623\tvalidation_1-rmse:7.0685\n",
+            "[704]\tvalidation_0-rmse:6.01562\tvalidation_1-rmse:7.06799\n",
+            "[705]\tvalidation_0-rmse:6.01539\tvalidation_1-rmse:7.06841\n",
+            "[706]\tvalidation_0-rmse:6.01454\tvalidation_1-rmse:7.06876\n",
+            "[707]\tvalidation_0-rmse:6.01381\tvalidation_1-rmse:7.06883\n",
+            "[708]\tvalidation_0-rmse:6.01307\tvalidation_1-rmse:7.06861\n",
+            "[709]\tvalidation_0-rmse:6.01292\tvalidation_1-rmse:7.06872\n",
+            "[710]\tvalidation_0-rmse:6.0124\tvalidation_1-rmse:7.06903\n",
+            "[711]\tvalidation_0-rmse:6.01203\tvalidation_1-rmse:7.06977\n",
+            "[712]\tvalidation_0-rmse:6.01175\tvalidation_1-rmse:7.06913\n",
+            "[713]\tvalidation_0-rmse:6.01153\tvalidation_1-rmse:7.06931\n",
+            "[714]\tvalidation_0-rmse:6.01093\tvalidation_1-rmse:7.06928\n",
+            "[715]\tvalidation_0-rmse:6.01039\tvalidation_1-rmse:7.06954\n",
+            "[716]\tvalidation_0-rmse:6.01001\tvalidation_1-rmse:7.06926\n",
+            "[717]\tvalidation_0-rmse:6.0096\tvalidation_1-rmse:7.0688\n",
+            "[718]\tvalidation_0-rmse:6.00936\tvalidation_1-rmse:7.06948\n",
+            "[719]\tvalidation_0-rmse:6.00903\tvalidation_1-rmse:7.06959\n",
+            "[720]\tvalidation_0-rmse:6.00862\tvalidation_1-rmse:7.07016\n",
+            "[721]\tvalidation_0-rmse:6.0078\tvalidation_1-rmse:7.06977\n",
+            "[722]\tvalidation_0-rmse:6.00726\tvalidation_1-rmse:7.06913\n",
+            "[723]\tvalidation_0-rmse:6.00713\tvalidation_1-rmse:7.06866\n",
+            "[724]\tvalidation_0-rmse:6.00696\tvalidation_1-rmse:7.06971\n",
+            "[725]\tvalidation_0-rmse:6.00654\tvalidation_1-rmse:7.06904\n",
+            "[726]\tvalidation_0-rmse:6.00624\tvalidation_1-rmse:7.06848\n",
+            "[727]\tvalidation_0-rmse:6.00584\tvalidation_1-rmse:7.06806\n",
+            "[728]\tvalidation_0-rmse:6.00565\tvalidation_1-rmse:7.06787\n",
+            "[729]\tvalidation_0-rmse:6.00472\tvalidation_1-rmse:7.06632\n",
+            "[730]\tvalidation_0-rmse:6.00449\tvalidation_1-rmse:7.06739\n",
+            "[731]\tvalidation_0-rmse:6.00435\tvalidation_1-rmse:7.06724\n",
+            "[732]\tvalidation_0-rmse:6.00382\tvalidation_1-rmse:7.06714\n",
+            "[733]\tvalidation_0-rmse:6.00331\tvalidation_1-rmse:7.0676\n",
+            "[734]\tvalidation_0-rmse:6.00168\tvalidation_1-rmse:7.06673\n",
+            "[735]\tvalidation_0-rmse:6.00124\tvalidation_1-rmse:7.06766\n",
+            "[736]\tvalidation_0-rmse:6.00002\tvalidation_1-rmse:7.06815\n",
+            "[737]\tvalidation_0-rmse:5.99961\tvalidation_1-rmse:7.06943\n",
+            "[738]\tvalidation_0-rmse:5.99922\tvalidation_1-rmse:7.0697\n",
+            "[739]\tvalidation_0-rmse:5.99852\tvalidation_1-rmse:7.06939\n",
+            "[740]\tvalidation_0-rmse:5.99785\tvalidation_1-rmse:7.06881\n",
+            "[741]\tvalidation_0-rmse:5.99738\tvalidation_1-rmse:7.06941\n",
+            "[742]\tvalidation_0-rmse:5.99662\tvalidation_1-rmse:7.06964\n",
+            "[743]\tvalidation_0-rmse:5.99618\tvalidation_1-rmse:7.0696\n",
+            "[744]\tvalidation_0-rmse:5.99572\tvalidation_1-rmse:7.06928\n",
+            "[745]\tvalidation_0-rmse:5.99546\tvalidation_1-rmse:7.06913\n",
+            "[746]\tvalidation_0-rmse:5.99514\tvalidation_1-rmse:7.0687\n",
+            "[747]\tvalidation_0-rmse:5.99501\tvalidation_1-rmse:7.06811\n",
+            "[748]\tvalidation_0-rmse:5.99473\tvalidation_1-rmse:7.0677\n",
+            "[749]\tvalidation_0-rmse:5.99358\tvalidation_1-rmse:7.06695\n",
+            "[750]\tvalidation_0-rmse:5.99319\tvalidation_1-rmse:7.06628\n",
+            "[751]\tvalidation_0-rmse:5.99264\tvalidation_1-rmse:7.06512\n",
+            "[752]\tvalidation_0-rmse:5.99242\tvalidation_1-rmse:7.06459\n",
+            "[753]\tvalidation_0-rmse:5.99189\tvalidation_1-rmse:7.0651\n",
+            "[754]\tvalidation_0-rmse:5.99174\tvalidation_1-rmse:7.06528\n",
+            "[755]\tvalidation_0-rmse:5.99144\tvalidation_1-rmse:7.06535\n",
+            "[756]\tvalidation_0-rmse:5.99117\tvalidation_1-rmse:7.06556\n",
+            "[757]\tvalidation_0-rmse:5.99073\tvalidation_1-rmse:7.06621\n",
+            "[758]\tvalidation_0-rmse:5.98999\tvalidation_1-rmse:7.06611\n",
+            "[759]\tvalidation_0-rmse:5.98979\tvalidation_1-rmse:7.06695\n",
+            "[760]\tvalidation_0-rmse:5.98941\tvalidation_1-rmse:7.0666\n",
+            "[761]\tvalidation_0-rmse:5.98898\tvalidation_1-rmse:7.06686\n",
+            "[762]\tvalidation_0-rmse:5.98835\tvalidation_1-rmse:7.06721\n",
+            "[763]\tvalidation_0-rmse:5.98835\tvalidation_1-rmse:7.06753\n",
+            "[764]\tvalidation_0-rmse:5.98801\tvalidation_1-rmse:7.06694\n",
+            "[765]\tvalidation_0-rmse:5.98766\tvalidation_1-rmse:7.0668\n",
+            "[766]\tvalidation_0-rmse:5.98715\tvalidation_1-rmse:7.0677\n",
+            "[767]\tvalidation_0-rmse:5.98639\tvalidation_1-rmse:7.06799\n",
+            "[768]\tvalidation_0-rmse:5.98585\tvalidation_1-rmse:7.06782\n",
+            "[769]\tvalidation_0-rmse:5.98536\tvalidation_1-rmse:7.06716\n",
+            "[770]\tvalidation_0-rmse:5.98506\tvalidation_1-rmse:7.06698\n",
+            "[771]\tvalidation_0-rmse:5.98458\tvalidation_1-rmse:7.06736\n",
+            "[772]\tvalidation_0-rmse:5.98351\tvalidation_1-rmse:7.06786\n",
+            "[773]\tvalidation_0-rmse:5.98288\tvalidation_1-rmse:7.06787\n",
+            "[774]\tvalidation_0-rmse:5.98258\tvalidation_1-rmse:7.06826\n",
+            "[775]\tvalidation_0-rmse:5.9824\tvalidation_1-rmse:7.06833\n",
+            "[776]\tvalidation_0-rmse:5.98215\tvalidation_1-rmse:7.06898\n",
+            "[777]\tvalidation_0-rmse:5.98189\tvalidation_1-rmse:7.06883\n",
+            "[778]\tvalidation_0-rmse:5.98125\tvalidation_1-rmse:7.06888\n",
+            "[779]\tvalidation_0-rmse:5.98102\tvalidation_1-rmse:7.06872\n",
+            "[780]\tvalidation_0-rmse:5.98068\tvalidation_1-rmse:7.06917\n",
+            "[781]\tvalidation_0-rmse:5.98059\tvalidation_1-rmse:7.06895\n",
+            "[782]\tvalidation_0-rmse:5.98001\tvalidation_1-rmse:7.06878\n",
+            "[783]\tvalidation_0-rmse:5.97943\tvalidation_1-rmse:7.06884\n",
+            "[784]\tvalidation_0-rmse:5.97923\tvalidation_1-rmse:7.0686\n",
+            "[785]\tvalidation_0-rmse:5.97898\tvalidation_1-rmse:7.06838\n",
+            "[786]\tvalidation_0-rmse:5.97826\tvalidation_1-rmse:7.06942\n",
+            "[787]\tvalidation_0-rmse:5.97741\tvalidation_1-rmse:7.06907\n",
+            "[788]\tvalidation_0-rmse:5.97683\tvalidation_1-rmse:7.06991\n",
+            "[789]\tvalidation_0-rmse:5.97663\tvalidation_1-rmse:7.07034\n",
+            "[790]\tvalidation_0-rmse:5.97625\tvalidation_1-rmse:7.07076\n",
+            "[791]\tvalidation_0-rmse:5.97609\tvalidation_1-rmse:7.07059\n",
+            "[792]\tvalidation_0-rmse:5.97593\tvalidation_1-rmse:7.07085\n",
+            "[793]\tvalidation_0-rmse:5.97536\tvalidation_1-rmse:7.07059\n",
+            "[794]\tvalidation_0-rmse:5.97479\tvalidation_1-rmse:7.07005\n",
+            "[795]\tvalidation_0-rmse:5.97454\tvalidation_1-rmse:7.07024\n",
+            "[796]\tvalidation_0-rmse:5.97418\tvalidation_1-rmse:7.06938\n",
+            "[797]\tvalidation_0-rmse:5.97391\tvalidation_1-rmse:7.0689\n",
+            "[798]\tvalidation_0-rmse:5.97319\tvalidation_1-rmse:7.06856\n",
+            "[799]\tvalidation_0-rmse:5.97253\tvalidation_1-rmse:7.06873\n"
+          ],
+          "name": "stdout"
+        },
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "XGBRegressor(base_score=0.5, booster='gbtree', colsample_bylevel=1,\n",
+              "             colsample_bynode=1, colsample_bytree=0.7, gamma=0,\n",
+              "             importance_type='gain', learning_rate=0.05, max_delta_step=0,\n",
+              "             max_depth=4, min_child_weight=5, missing=None, n_estimators=800,\n",
+              "             n_jobs=1, nthread=None, objective='reg:squarederror',\n",
+              "             random_state=0, reg_alpha=0, reg_lambda=1, scale_pos_weight=1,\n",
+              "             seed=None, silent=None, subsample=0.55, verbosity=1)"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 282
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "AzZd4wFba5xM",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "eval_result=xgb.evals_result()"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "ybas1zIRbe-h",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "training_rounds=range(len(eval_result['validation_0']['rmse']))"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "12T5pXQmbsqW",
+        "colab_type": "code",
+        "outputId": "97bc3e27-bbf2-4b2c-ed3d-4b767f02ac72",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 34
+        }
+      },
+      "source": [
+        "training_rounds"
+      ],
+      "execution_count": 0,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "range(0, 800)"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 285
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "AG53x5bVb1pB",
+        "colab_type": "code",
+        "outputId": "4ff9230b-ddec-4698-b7b4-dd40cad326ca",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 295
+        }
+      },
+      "source": [
+        "plt.scatter(training_rounds, eval_result['validation_0']['rmse'], label=\"Training Error\")\n",
+        "plt.scatter(training_rounds, eval_result['validation_1']['rmse'], label=\"Validation Error\")\n",
+        "plt.grid()\n",
+        "plt.xlabel('Iteration')\n",
+        "plt.ylabel('RMSE')\n",
+        "plt.title('Training Vs Validation Error')\n",
+        "plt.legend()\n",
+        "plt.show()"
+      ],
+      "execution_count": 0,
+      "outputs": [
+        {
+          "output_type": "display_data",
+          "data": {
+            "image/png": "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\n",
+            "text/plain": [
+              "<Figure size 432x288 with 1 Axes>"
+            ]
+          },
+          "metadata": {
+            "tags": [],
+            "needs_background": "light"
+          }
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "VRLI2wfCfe3a",
+        "colab_type": "code",
+        "outputId": "a188beaf-c954-46b7-cc32-f6fbde0a85dc",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 221
+        }
+      },
+      "source": [
+        "df.isna().mean().sort_values(ascending=True)"
+      ],
+      "execution_count": 0,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "NAT_MARK         0.0\n",
+              "SCH_NM_72        0.0\n",
+              "SCH_NM_71        0.0\n",
+              "SCH_NM_70        0.0\n",
+              "SCH_NM_69        0.0\n",
+              "                ... \n",
+              "SCH_NM_24        0.0\n",
+              "SCH_NM_23        0.0\n",
+              "SCH_NM_22        0.0\n",
+              "SCH_NM_33        0.0\n",
+              "PROV_NM_South    0.0\n",
+              "Length: 110, dtype: float64"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 275
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "zeBLlRWidL9o",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "df.dropna(inplace=True)"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "EZKUV_NFgtiq",
+        "colab_type": "code",
+        "outputId": "ef42da15-b741-4c6b-ade8-e3845f077113",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 34
+        }
+      },
+      "source": [
+        "df.shape"
+      ],
+      "execution_count": 0,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "(24172, 110)"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 274
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "iI6BTPk-gvgx",
+        "colab_type": "code",
+        "outputId": "09d3c875-208e-4e12-c1fc-042d43b580ba",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 136
+        }
+      },
+      "source": [
+        "df.keys()"
+      ],
+      "execution_count": 0,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "Index(['NAT_MARK', 'GPA', 'SUBM', 'Teacher_Gender', 'ACHIEVEMENTS1',\n",
+              "       'MIDTERM1', 'FINAL1', 'SCH_NM_0', 'SCH_NM_1', 'SCH_NM_2',\n",
+              "       ...\n",
+              "       'SCH_NM_93', 'SCH_NM_94', 'SCH_NM_95', 'SCH_NM_96', 'SCH_NM_97',\n",
+              "       'SCH_NM_98', 'PROV_NM_Cap', 'PROV_NM_Muharaq', 'PROV_NM_North',\n",
+              "       'PROV_NM_South'],\n",
+              "      dtype='object', length=110)"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 276
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "thh_4DWbg7vg",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "from sklearn.feature_selection import RFE\n",
+        "selector = RFE(xgb, 5, step=1)\n",
+        "selector = selector.fit(X, y)\n",
+        "selector.support_"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "MUFwld37jXPc",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        ""
+      ],
+      "execution_count": 0,
+      "outputs": []
+    }
+  ]
+}
